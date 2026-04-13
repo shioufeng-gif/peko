@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>部首大挑戰 Pro - 智慧學習版</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft JhengHei';
+    background-color: #e0f7fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 15px;
+    box-sizing: border-box;
+  }
+  .quiz-container {
+    background: #ffffff;
+    padding: clamp(15px, 4vw, 30px);
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+  }
+  h1 {
+    color: #00796b;
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    margin-bottom: 20px;
+  }
+  .setup-section {
+    background: #e8f5e9;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+  }
+  .setup-section select {
+    padding: 10px;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin: 10px 0;
+    width: 90%;
+    max-width: 300px;
+  }
+  
+  /* 頂部資訊列 (進度與計時) */
+  .info-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: #555;
+    font-size: clamp(0.9rem, 3vw, 1.1rem);
+    font-weight: bold;
+    padding: 0 10px;
+  }
+
+  /* 題目框 */
+  .question-box {
+    background-color: #fff9c4;
+    padding: clamp(15px, 4vw, 25px);
+    border-radius: 15px;
+    margin-bottom: 20px;
+    font-size: clamp(1.4rem, 6vw, 2.2rem); /* 自動調整字體大小 */
+    font-weight: bold;
+    color: #333;
+    border: 3px dashed #ffb300;
+  }
+  
+  /* 選項網格 */
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(10px, 3vw, 15px);
+    margin-bottom: 20px;
+  }
+  .option-btn {
+    background-color: #f5f5f5;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: clamp(12px, 3vw, 20px);
+    font-size: clamp(1.2rem, 5vw, 1.8rem); /* 自動調整字體大小 */
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: bold;
+    color: #424242;
+  }
+  .option-btn:hover:not(:disabled) {
+    background-color: #e3f2fd;
+    border-color: #64b5f6;
+    transform: scale(1.02);
+  }
+  .option-btn.correct {
+    background-color: #c8e6c9;
+    border-color: #4caf50;
+    color: #2e7d32;
+  }
+  .option-btn.wrong {
+    background-color: #ffcdd2;
+    border-color: #f44336;
+    color: #c62828;
+  }
+  .option-btn:disabled {
+    cursor: default;
+  }
+
+  /* 回饋訊息框 */
+  .feedback {
+    min-height: 60px;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: clamp(1rem, 3.5vw, 1.2rem);
+    display: none;
+    line-height: 1.5;
+  }
+  .feedback.show-correct {
+    display: block;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+  }
+  .feedback.show-wrong {
+    display: block;
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+  }
+
+  /* 導覽按鈕區 */
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .btn {
+    flex: 1;
+    min-width: 100px;
+    color: white;
+    border: none;
+    padding: clamp(10px, 3vw, 15px);
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: background-color 0.2s, opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn-primary { background-color: #ff9800; }
+  .btn-secondary { background-color: #9e9e9e; }
+  .btn-home { background-color: #00bcd4; }
+
+  /* 學習統計報表樣式 */
+  .stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+  }
+  .stats-table th, .stats-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  .stats-table th { background: #f5f5f5; color: #333; }
+  .stats-table tr:nth-child(even) { background-color: #fafafa; }
+  .high-error { color: #d32f2f; font-weight: bold; }
+  .perfect { color: #2e7d32; font-weight: bold; }
+  
+  /* 手機直式微調 */
+  @media (max-width: 400px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .nav-buttons { flex-direction: column; }
+    .btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="quiz-container">
+  <h1>🌟 智慧部首大挑戰 🌟</h1>
+  
+  <div id="setup-ui" class="setup-section">
+    <p style="font-size: 1.2rem; font-weight: bold; color: #2e7d32;">請選擇挑戰模式</p>
+    <select id="question-count-select">
+      <option value="10">挑戰 10 題 (暖身)</option>
+      <option value="20">挑戰 20 題 (進階)</option>
+      <option value="50">挑戰 50 題 (特訓)</option>
+      <option value="all">全部作答 (93題大魔王)</option>
+    </select>
+    <br><br>
+    <button class="btn btn-primary" style="width:80%" onclick="initQuiz()">開始測驗 🚀</button>
+  </div>
+
+  <div id="quiz-ui" style="display:none">
+    <div class="info-bar">
+      <span id="progress"></span>
+      <span id="timer-display">⏱️ 00:00</span>
+    </div>
+    <div class="question-box" id="question-text">載入中...</div>
+    <div class="options-grid" id="options-container"></div>
+    <div class="feedback" id="feedback-box"></div>
+    
+    <div class="nav-buttons">
+      <button class="btn btn-home" onclick="goHome()">🏠 首頁</button>
+      <button class="btn btn-secondary" id="prev-btn" onclick="prevQuestion()" style="display:none">⬅️ 上一題</button>
+      <button class="btn btn-primary" id="next-btn" style="visibility:hidden" onclick="nextQuestion()">下一題 ➔</button>
+    </div>
+  </div>
+
+  <div id="result-ui" style="display:none">
+    <div id="result-summary"></div>
+    <button class="btn btn-primary" onclick="goHome()" style="margin-top: 15px; width: 100%;">返回主選單 / 重新測驗</button>
+    <div id="stats-container" style="max-height: 350px; overflow-y: auto; margin-top: 20px;"></div>
+  </div>
+</div>
+
+<script>
+  // 音效合成器
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(isCorrect) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    if (isCorrect) {
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.3);
+    } else {
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.2);
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.4);
+    }
+  }
+
+  // 93 個單字題庫
+  const rawWordData = [
+    ["要", "ㄧㄠˋ", "襾", "女", "西", "日"], ["靜", "ㄐㄧㄥˋ", "青", "爭", "月", "立"], ["天", "ㄊㄧㄢ", "大", "一", "人", "二"], ["空", "ㄎㄨㄥ", "穴", "工", "宀", "八"], ["雲", "ㄩㄣˊ", "雨", "二", "厶", "云"], ["水", "ㄕㄨㄟˇ", "水", "亅", "冰", "氵"], ["蟲", "ㄔㄨㄥˊ", "虫", "中", "皿", "口"], ["鳥", "ㄋㄧㄠˇ", "鳥", "隹", "點", "火"], ["草", "ㄘㄠˇ", "艸(艹)", "木", "早", "日"], ["先", "ㄒㄧㄢ", "儿", "牛", "土", "一"], ["完", "ㄨㄢˊ", "宀", "元", "儿", "一"], ["再", "ㄗㄞˋ", "冂", "一", "土", "王"], ["去", "ㄑㄩˋ", "厶", "土", "大", "十"], ["園", "ㄩㄢˊ", "囗", "袁", "口", "衣"], ["聽", "ㄊㄧㄥ", "耳", "口", "斤", "心"], ["沒", "ㄇㄟˊ", "水(氵)", "殳", "几", "又"], ["正", "ㄓㄥˋ", "止", "一", "下", "卜"], ["唱", "ㄔㄤˋ", "口", "日", "曰", "木"], ["著", "ㄓㄜ˙", "艸(艹)", "者", "日", "目"], ["輕", "ㄑㄧㄥ", "車", "巠", "工", "舟"], ["快", "ㄎㄨㄞˋ", "心(忄)", "手", "夬", "彳"], ["歌", "ㄍㄜ", "欠", "哥", "口", "言"], ["出", "ㄔㄨ", "凵", "山", "屮", "止"], ["新", "ㄒㄧㄣ", "斤", "立", "木", "辛"], ["芽", "ㄧㄚˊ", "艸(艹)", "牙", "邪", "木"], ["聞", "ㄨㄣˊ", "耳", "門", "口", "音"], ["身", "ㄕㄣ", "身", "自", "舟", "月"], ["香", "ㄒㄧㄤ", "香", "禾", "日", "曰"], ["呢", "ㄋㄜ˙", "口", "尼", "尸", "匕"], ["媽", "ㄇㄚ", "女", "馬", "灬", "一"], ["音", "ㄧㄣ", "音", "立", "日", "曰"], ["樂", "ㄌㄜˋ", "木", "白", "幺", "糸"], ["會", "ㄏㄨㄟˋ", "曰", "人", "田", "日"], ["始", "ㄕˇ", "女", "台", "口", "厶"], ["來", "ㄌㄞˊ", "人", "木", "十", "夾"], ["重", "ㄓㄨㄥˋ", "里", "千", "車", "日"], ["短", "ㄉㄨㄢˇ", "矢", "豆", "弓", "寸"], ["陣", "ㄓㄣˋ", "阜(左阝)", "車", "邑(右阝)", "斤"], ["過", "ㄍㄨㄛˋ", "辵(辶)", "咼", "口", "彳"], ["後", "ㄏㄡˋ", "彳", "幺", "夂", "止"], ["吃", "ㄔ", "口", "乞", "乙", "气"], ["菜", "ㄘㄞˋ", "艸(艹)", "采", "木", "爪"], ["就", "ㄐㄧㄡˋ", "尢", "京", "尤", "小"], ["桌", "ㄓㄨㄛ", "木", "卜", "卓", "日"], ["真", "ㄓㄣ", "目", "十", "八", "具"], ["鞋", "ㄒㄧㄝˊ", "革", "圭", "土", "巾"], ["回", "ㄏㄨㄟˊ", "囗", "口", "迴", "面"], ["家", "ㄐㄧㄚ", "宀", "豕", "豖", "虫"], ["把", "ㄅㄚˇ", "手(扌)", "巴", "己", "卩"], ["脫", "ㄊㄨㄛ", "肉(月)", "月", "兌", "儿"], ["爸", "ㄅㄚˋ", "父", "巴", "色", "己"], ["靠", "ㄎㄠˋ", "非", "告", "口", "飛"], ["見", "ㄐㄧㄢˋ", "見", "目", "儿", "貝"], ["像", "ㄒㄧㄤˋ", "人(亻)", "象", "豕", "⺈"], ["船", "ㄔㄨㄢˊ", "舟", "几", "口", "鉛"], ["港", "ㄍㄤˇ", "水(氵)", "巷", "己", "巳"], ["口", "ㄎㄡˇ", "口", "囗", "凵", "匚"], ["享", "ㄒㄧㄤˇ", "亠", "子", "口", "高"], ["受", "ㄕㄡˋ", "又", "爪", "冖", "爫"], ["溫", "ㄨㄣ", "水(氵)", "皿", "日", "囚"], ["暖", "ㄋㄨㄢˇ", "日", "爰", "爪", "友"], ["種", "ㄓㄨㄥˇ", "禾", "重", "木", "里"], ["問", "ㄨㄣˋ", "口", "門", "日", "耳"], ["怎", "ㄗㄣˇ", "心", "乍", "欠", "手"], ["做", "ㄗㄨㄛˋ", "人(亻)", "故", "攵", "十"], ["它", "ㄊㄚ", "宀", "匕", "虫", "蛇"], ["才", "ㄘㄞˊ", "手", "木", "扌", "十"], ["需", "ㄒㄩ", "雨", "而", "頁", "彡"], ["於", "ㄩˊ", "方", "仒", "冰", "卜"], ["澆", "ㄐㄧㄠ", "水(氵)", "堯", "土", "兀"], ["陽", "ㄧㄤˊ", "阜(左阝)", "日", "邑(右阝)", "易"], ["光", "ㄍㄨㄤ", "儿", "小", "一", "火"], ["放", "ㄈㄤˋ", "攴(攵)", "方", "斤", "口"], ["院", "ㄩㄢˋ", "阜(左阝)", "完", "宀", "邑(右阝)"], ["公", "ㄍㄨㄥ", "八", "厶", "口", "ㄥ"], ["話", "ㄏㄨㄚˋ", "言", "舌", "口", "十"], ["伴", "ㄅㄢˋ", "人(亻)", "半", "十", "丰"], ["奶", "ㄋㄞˇ", "女", "乃", "弓", "力"], ["跟", "ㄍㄣ", "足", "艮", "止", "走"], ["班", "ㄅㄢ", "玉(王)", "王", "刀", "玨"], ["床", "ㄔㄨㄤˊ", "广", "木", "厂", "庄"], ["弟", "ㄉㄧˋ", "弓", "八", "丷", "矛"], ["她", "ㄊㄚ", "女", "也", "匕", "虫"], ["酒", "ㄐㄧㄡˇ", "酉", "水", "西", "氵"], ["拿", "ㄋㄚˊ", "手", "合", "口", "扌"], ["卡", "ㄎㄚˇ", "卜", "上", "下", "一"], ["片", "ㄆㄧㄢˋ", "片", "爿", "鼎", "斤"], ["給", "ㄍㄟˇ", "糸", "合", "口", "糹"], ["寫", "ㄒㄧㄝˇ", "宀", "舄", "冖", "手"], ["喜", "ㄒㄧˇ", "口", "士", "吉", "豆"], ["歡", "ㄏㄨㄢ", "欠", "雚", "口", "人"], ["您", "ㄋㄧㄣˊ", "心", "你", "人", "小"], ["都", "ㄉㄡ", "邑(右阝)", "者", "日", "阜(左阝)"]
+  ];
+
+  let quizData = [];
+  let currentQuestionIndex = 0;
+  let score = 0;
+  let totalQuestions = 10;
+  
+  // 計時器變數
+  let startTime = 0;
+  let timerInterval = null;
+  let totalSecondsElapsed = 0;
+  
+  let userStats = JSON.parse(localStorage.getItem('radicalQuizStats')) || {};
+
+  function saveStats() { localStorage.setItem('radicalQuizStats', JSON.stringify(userStats)); }
+
+  function getErrorRate(char) {
+    if (!userStats[char]) return 0.5;
+    const total = userStats[char].correct + userStats[char].wrong;
+    if (total === 0) return 0.5;
+    return userStats[char].wrong / total;
+  }
+
+  function shuffleArray(array) {
+    let newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  }
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function startTimer() {
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      totalSecondsElapsed = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('timer-display').textContent = `⏱️ ${formatTime(totalSecondsElapsed)}`;
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+  }
+
+  // 返回首頁邏輯
+  function goHome() {
+    stopTimer();
+    document.getElementById('quiz-ui').style.display = 'none';
+    document.getElementById('result-ui').style.display = 'none';
+    document.getElementById('setup-ui').style.display = 'block';
+  }
+
+  function initQuiz() {
+    const selectBox = document.getElementById('question-count-select');
+    totalQuestions = selectBox.value === 'all' ? rawWordData.length : parseInt(selectBox.value);
+
+    let sortedData = [...rawWordData].sort((a, b) => {
+      let rateA = getErrorRate(a[0]);
+      let rateB = getErrorRate(b[0]);
+      return (rateB - rateA) + (Math.random() * 0.4 - 0.2); 
+    });
+
+    const selectedWords = sortedData.slice(0, totalQuestions);
+    
+    quizData = selectedWords.map(item => {
+      const char = item[0];
+      const correctRadical = item[2];
+      
+      let uniqueOptions = new Set();
+      uniqueOptions.add(correctRadical); 
+      
+      let wrongPool = [item[3], item[4], item[5]];
+      wrongPool.forEach(opt => uniqueOptions.add(opt));
+
+      while(uniqueOptions.size < 4) {
+        let randomChar = rawWordData[Math.floor(Math.random() * rawWordData.length)][2];
+        uniqueOptions.add(randomChar);
+      }
+
+      const optionsArray = shuffleArray(Array.from(uniqueOptions));
+      const answerIndex = optionsArray.indexOf(correctRadical);
+
+      return {
+        char: char,
+        question: `「${char}」(${item[1]}) 的部首是？`,
+        options: optionsArray,
+        answerIndex: answerIndex,
+        correctRadical: correctRadical,
+        rationale: `「${char}」的部首是「${correctRadical}」部喔！`,
+        userAnswer: null // 紀錄玩家選的答案
+      };
+    });
+
+    document.getElementById('setup-ui').style.display = 'none';
+    document.getElementById('quiz-ui').style.display = 'block';
+    
+    currentQuestionIndex = 0;
+    score = 0;
+    totalSecondsElapsed = 0;
+    document.getElementById('timer-display').textContent = `⏱️ 00:00`;
+    
+    startTimer();
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    const currentQuiz = quizData[currentQuestionIndex];
+    document.getElementById('question-text').textContent = currentQuiz.question;
+    document.getElementById('progress').textContent = `進度: ${currentQuestionIndex + 1} / ${totalQuestions}`;
+    
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackBox = document.getElementById('feedback-box');
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+
+    optionsContainer.innerHTML = '';
+    feedbackBox.className = 'feedback';
+    feedbackBox.textContent = '';
+    nextBtn.style.visibility = 'hidden';
+    nextBtn.textContent = (currentQuestionIndex === totalQuestions - 1) ? '看成績 ➔' : '下一題 ➔';
+
+    // 判斷是否顯示「上一題」按鈕
+    prevBtn.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+
+    currentQuiz.options.forEach((option, index) => {
+      const button = document.createElement('button');
+      button.textContent = option;
+      button.className = 'option-btn';
+      
+      // 如果這題之前已經作答過了，直接顯示結果不允許再點擊
+      if (currentQuiz.userAnswer !== null) {
+        button.disabled = true;
+        if (index === currentQuiz.answerIndex) {
+          button.classList.add('correct'); // 正確答案標記
+        }
+        if (index === currentQuiz.userAnswer && currentQuiz.userAnswer !== currentQuiz.answerIndex) {
+          button.classList.add('wrong'); // 玩家選錯的標記
+        }
+      } else {
+        button.onclick = () => selectAnswer(index, button);
+      }
+      
+      optionsContainer.appendChild(button);
+    });
+
+    // 如果已經作答過，直接顯示回饋文字跟下一題按鈕
+    if (currentQuiz.userAnswer !== null) {
+      nextBtn.style.visibility = 'visible';
+      if (currentQuiz.userAnswer === currentQuiz.answerIndex) {
+        feedbackBox.textContent = '⭕ 此題您答對了！' + currentQuiz.rationale;
+        feedbackBox.className = 'feedback show-correct';
+      } else {
+        feedbackBox.textContent = '❌ 此題您答錯了。正確答案是「' + currentQuiz.correctRadical + '」。' + currentQuiz.rationale;
+        feedbackBox.className = 'feedback show-wrong';
+      }
+    }
+  }
+
+  function selectAnswer(selectedIndex, selectedButton) {
+    const currentQuiz = quizData[currentQuestionIndex];
+    const isCorrect = (selectedIndex === currentQuiz.answerIndex);
+    const char = currentQuiz.char;
+    const allButtons = document.querySelectorAll('.option-btn');
+
+    // 紀錄玩家的答案 (避免上一題返回後可以無限刷分)
+    currentQuiz.userAnswer = selectedIndex;
+
+    playSound(isCorrect);
+    allButtons.forEach(btn => btn.disabled = true);
+
+    if (!userStats[char]) {
+      userStats[char] = { correct: 0, wrong: 0 };
+    }
+
+    const feedbackBox = document.getElementById('feedback-box');
+
+    if (isCorrect) {
+      selectedButton.classList.add('correct');
+      feedbackBox.textContent = '⭕ 答對了！' + currentQuiz.rationale;
+      feedbackBox.className = 'feedback show-correct';
+      userStats[char].correct++;
+      score++;
+    } else {
+      selectedButton.classList.add('wrong');
+      allButtons[currentQuiz.answerIndex].classList.add('correct');
+      feedbackBox.textContent = '❌ 答錯了喔。正確答案是「' + currentQuiz.correctRadical + '」。' + currentQuiz.rationale;
+      feedbackBox.className = 'feedback show-wrong';
+      userStats[char].wrong++;
+    }
+
+    saveStats();
+    document.getElementById('next-btn').style.visibility = 'visible';
+  }
+
+  // 返回上一題邏輯
+  function prevQuestion() {
+    if (currentQuestionIndex > 0) {
+      currentQuestionIndex--;
+      loadQuestion();
+    }
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < quizData.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    stopTimer();
+    document.getElementById('quiz-ui').style.display = 'none';
+    const resultUi = document.getElementById('result-ui');
+    resultUi.style.display = 'block';
+    
+    const summaryBox = document.getElementById('result-summary');
+    const percentage = Math.round((score / totalQuestions) * 100);
+    
+    let titleHtml = '';
+    if (percentage >= 80) {
+      titleHtml = `<h2>🎉 測驗完成！太棒了！</h2>`;
+    } else {
+      titleHtml = `<h2>💪 測驗完成！繼續加油！</h2>`;
+    }
+    
+    summaryBox.innerHTML = `${titleHtml}
+      <div style="background:#f1f8e9; padding: 15px; border-radius: 10px; display:inline-block; margin-bottom: 10px;">
+        <p style="font-size:1.3rem; margin:5px 0;">🎯 答對題數：<strong>${score} / ${totalQuestions}</strong> (${percentage}分)</p>
+        <p style="font-size:1.1rem; margin:5px 0; color:#555;">⏱️ 總作答時間：<strong>${formatTime(totalSecondsElapsed)}</strong></p>
+      </div>
+    `;
+
+    renderStatsTable();
+  }
+
+  function renderStatsTable() {
+    const statsContainer = document.getElementById('stats-container');
+    
+    let html = `<h3>📊 個人學習統計 (依錯誤率排序)</h3>`;
+    html += `<table class="stats-table">
+              <tr>
+                <th>單字</th>
+                <th>正確次數</th>
+                <th>錯誤次數</th>
+                <th>正確率</th>
+              </tr>`;
+
+    const sortedStats = Object.keys(userStats).sort((a, b) => {
+      const rateA = userStats[a].wrong / (userStats[a].correct + userStats[a].wrong || 1);
+      const rateB = userStats[b].wrong / (userStats[b].correct + userStats[b].wrong || 1);
+      return rateB - rateA;
+    });
+
+    sortedStats.forEach(char => {
+      const data = userStats[char];
+      const total = data.correct + data.wrong;
+      const accRate = Math.round((data.correct / total) * 100);
+      
+      let rateClass = '';
+      if (accRate < 60 && total > 0) rateClass = 'high-error';
+      else if (accRate === 100) rateClass = 'perfect';
+
+      html += `<tr>
+                 <td style="font-size:1.2rem; font-weight:bold;">${char}</td>
+                 <td>${data.correct}</td>
+                 <td class="${data.wrong > 0 ? 'high-error' : ''}">${data.wrong}</td>
+                 <td class="${rateClass}">${accRate}%</td>
+               </tr>`;
+    });
+
+    html += `</table>`;
+    statsContainer.innerHTML = html;
+  }
+</script>
+</body>
+</html>
