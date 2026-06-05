@@ -81,12 +81,23 @@
     background-color: #f5f5f5;
     border: 2px solid #e0e0e0;
     border-radius: 12px;
-    padding: clamp(12px, 3vw, 20px);
+    padding: clamp(10px, 2.5vw, 15px);
     font-size: clamp(1.2rem, 5vw, 1.8rem); /* 自動調整字體大小 */
     cursor: pointer;
     transition: all 0.2s;
     font-weight: bold;
     color: #424242;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+  }
+  .zhuyin-text {
+    font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+    color: #00796b;
+    margin-top: 4px;
+    font-weight: normal;
   }
   .option-btn:hover:not(:disabled) {
     background-color: #e3f2fd;
@@ -172,6 +183,37 @@
   .high-error { color: #d32f2f; font-weight: bold; }
   .perfect { color: #2e7d32; font-weight: bold; }
   
+  /* 入口網頁樣式 */
+  .portal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+  .portal-card {
+    background: #ffffff;
+    border: 2px solid #00bcd4;
+    border-radius: 15px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .portal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    background-color: #e0f7fa;
+  }
+  .portal-card i { font-size: 3rem; margin-bottom: 10px; }
+  .portal-card h3 { margin: 10px 0; color: #00796b; }
+  .disabled-card {
+    opacity: 0.6;
+    cursor: not-allowed;
+    border-color: #ccc;
+  }
+
   /* 手機直式微調 */
   @media (max-width: 400px) {
     .options-grid { grid-template-columns: 1fr; }
@@ -179,13 +221,35 @@
     .btn { width: 100%; }
   }
 </style>
+<!-- 引入 Font Awesome 用於圖標 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
 <div class="quiz-container">
   <h1>🌟 智慧部首大挑戰 🌟</h1>
   
-  <div id="setup-ui" class="setup-section">
+  <!-- 新增入口網頁區塊 -->
+  <div id="portal-ui">
+    <p style="font-size: 1.2rem; color: #555;">請選擇學習類別</p>
+    <div class="portal-grid">
+      <!-- 現有的課程 -->
+      <div class="portal-card" onclick="selectCategory('grade1-lower-1-6')">
+        <i class="fas fa-book-open" style="color: #ff9800;"></i>
+        <h3>國小一下</h3>
+        <p>(第 1~6 課)</p>
+      </div>
+      <!-- 預留未來擴充 -->
+      <div class="portal-card disabled-card">
+        <i class="fas fa-lock" style="color: #9e9e9e;"></i>
+        <h3>國小一下</h3>
+        <p>(第 7~12 課)</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="setup-ui" class="setup-section" style="display:none">
+    <h2 id="category-title" style="color: #2e7d32; margin-top: 0;"></h2>
     <p style="font-size: 1.2rem; font-weight: bold; color: #2e7d32;">請選擇挑戰模式</p>
     <select id="question-count-select">
       <option value="10">挑戰 10 題 (暖身)</option>
@@ -266,6 +330,25 @@
   
   let userStats = JSON.parse(localStorage.getItem('radicalQuizStats')) || {};
 
+  // 部首與選項組件的注音對照表
+  const zhuyinMap = {
+    "襾": "ㄧㄚˋ", "青": "ㄑㄧㄥ", "大": "ㄉㄚˋ", "一": "ㄧ", "人": "ㄖㄣˊ", "二": "ㄦˋ", "穴": "ㄒㄩㄝˋ", "工": "ㄍㄨㄥ",
+    "雨": "ㄩˇ", "厶": "ㄙ", "云": "ㄩㄣˊ", "水": "ㄕㄨㄟˇ", "水(氵)": "ㄕㄨㄟˇ", "冰": "ㄅㄧㄥ", "虫": "ㄔㄨㄥˊ", "中": "ㄓㄨㄥ",
+    "皿": "ㄇㄧㄣˇ", "鳥": "ㄋㄧㄠˇ", "隹": "ㄓㄨㄟ", "火": "ㄏㄨㄛˇ", "艸(艹)": "ㄘㄠˇ", "早": "ㄗㄠˇ", "儿": "ㄦˊ", "牛": "ㄋㄧㄡˊ",
+    "土": "ㄊㄨˇ", "宀": "ㄇㄧㄢˊ", "元": "ㄩㄢˊ", "冂": "ㄐㄩㄥ", "王": "ㄨㄤˊ", "囗": "ㄨㄟˊ", "袁": "ㄩㄢˊ", "耳": "ㄦˇ",
+    "斤": "ㄐㄧㄣ", "止": "ㄓˇ", "日": "ㄖˋ", "曰": "ㄩㄝ", "車": "ㄔㄜ", "巠": "ㄐㄧㄥ", "心(忄)": "ㄒㄧㄣ", "欠": "ㄑㄧㄢˋ",
+    "哥": "ㄍㄜ", "凵": "ㄎㄢˇ", "山": "ㄕㄢ", "立": "ㄌㄧˋ", "牙": "ㄧㄚˊ", "身": "ㄕㄣ", "門": "ㄇㄣˊ", "自": "ㄗˋ",
+    "香": "ㄒㄧㄤ", "禾": "ㄏㄜˊ", "尼": "ㄋㄧˊ", "女": "ㄋㄩˇ", "馬": "ㄇㄚˇ", "白": "ㄅㄞˊ", "台": "ㄊㄞˊ", "來": "ㄌㄞˊ",
+    "里": "ㄌㄧˇ", "千": "ㄑㄧㄢ", "短": "ㄉㄨㄢˇ", "矢": "ㄕˇ", "豆": "ㄉㄡˋ", "弓": "ㄍㄨㄥ", "寸": "ㄘㄨㄣˋ", "阜(左阝)": "ㄈㄨˋ",
+    "邑(右阝)": "ㄧˋ", "辵(辶)": "ㄔㄨㄛˋ", "咼": "ㄍㄨㄛ", "彳": "ㄔˋ", "乞": "ㄑㄧˇ", "菜": "ㄘㄞˋ", "采": "ㄘㄞˇ", "目": "ㄇㄨˋ",
+    "革": "ㄍㄜˊ", "圭": "ㄍㄨㄟ", "回": "ㄏㄨㄟˊ", "家": "ㄐㄧㄚ", "豕": "ㄕˇ", "把": "ㄅㄚˇ", "手(扌)": "ㄕㄡˇ", "巴": "ㄅㄚ",
+    "肉(月)": "ㄖㄡˋ", "爸": "ㄅㄚˋ", "非": "ㄈㄟ", "見": "ㄐㄧㄢˋ", "舟": "ㄓㄡ", "享": "ㄒㄧㄤˇ", "受": "ㄕㄡˋ", "爪": "ㄓㄠˇ",
+    "溫": "ㄨㄣ", "暖": "ㄋㄨㄢˇ", "乍": "ㄓㄚˋ", "做": "ㄗㄨㄛˋ", "它": "ㄊㄚ", "匕": "ㄅㄧˇ", "才": "ㄘㄞˊ", "需": "ㄒㄩ",
+    "而": "ㄦˊ", "方": "ㄈㄤ", "易": "ㄧˋ", "光": "ㄍㄨㄤ", "攴(攵)": "ㄆㄨ", "完": "ㄨㄢˊ", "八": "ㄅㄚ", "言": "ㄧㄢˊ",
+    "跟": "ㄍㄣ", "足": "ㄗㄨˊ", "艮": "ㄍㄣˇ", "班": "ㄅㄢ", "玉(王)": "ㄩˋ", "床": "ㄔㄨㄤˊ", "广": "ㄧㄢˇ", "弟": "ㄉㄧˋ",
+    "酉": "ㄧㄡˇ", "卜": "ㄅㄨˇ", "片": "ㄆㄧㄢˋ", "糸": "ㄇㄧˋ", "喜": "ㄒㄧˇ", "吉": "ㄐㄧˊ", "歡": "ㄏㄨㄢ", "都": "ㄉㄡ", "您": "ㄋㄧㄣˊ"
+  };
+
   function saveStats() { localStorage.setItem('radicalQuizStats', JSON.stringify(userStats)); }
 
   function getErrorRate(char) {
@@ -291,6 +374,7 @@
   }
 
   function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
     startTime = Date.now();
     timerInterval = setInterval(() => {
       totalSecondsElapsed = Math.floor((Date.now() - startTime) / 1000);
@@ -302,12 +386,22 @@
     if (timerInterval) clearInterval(timerInterval);
   }
 
+  // 入口網頁選擇類別
+  function selectCategory(category) {
+    document.getElementById('portal-ui').style.display = 'none';
+    document.getElementById('setup-ui').style.display = 'block';
+    if (category === 'grade1-lower-1-6') {
+      document.getElementById('category-title').textContent = '📚 國小一下 (1~6課)';
+    }
+  }
+
   // 返回首頁邏輯
   function goHome() {
     stopTimer();
     document.getElementById('quiz-ui').style.display = 'none';
     document.getElementById('result-ui').style.display = 'none';
-    document.getElementById('setup-ui').style.display = 'block';
+    document.getElementById('setup-ui').style.display = 'none';
+    document.getElementById('portal-ui').style.display = 'block';
   }
 
   function initQuiz() {
@@ -384,7 +478,8 @@
 
     currentQuiz.options.forEach((option, index) => {
       const button = document.createElement('button');
-      button.textContent = option;
+      const zhuyin = zhuyinMap[option] || "";
+      button.innerHTML = `<span>${option}</span>${zhuyin ? `<span class="zhuyin-text">${zhuyin}</span>` : ""}`;
       button.className = 'option-btn';
       
       // 如果這題之前已經作答過了，直接顯示結果不允許再點擊
@@ -406,11 +501,12 @@
     // 如果已經作答過，直接顯示回饋文字跟下一題按鈕
     if (currentQuiz.userAnswer !== null) {
       nextBtn.style.visibility = 'visible';
+      const correctDisplay = currentQuiz.correctRadical + (zhuyinMap[currentQuiz.correctRadical] ? `(${zhuyinMap[currentQuiz.correctRadical]})` : "");
       if (currentQuiz.userAnswer === currentQuiz.answerIndex) {
         feedbackBox.textContent = '⭕ 此題您答對了！' + currentQuiz.rationale;
         feedbackBox.className = 'feedback show-correct';
       } else {
-        feedbackBox.textContent = '❌ 此題您答錯了。正確答案是「' + currentQuiz.correctRadical + '」。' + currentQuiz.rationale;
+        feedbackBox.textContent = '❌ 此題您答錯了。正確答案是「' + correctDisplay + '」。' + currentQuiz.rationale;
         feedbackBox.className = 'feedback show-wrong';
       }
     }
@@ -441,9 +537,10 @@
       userStats[char].correct++;
       score++;
     } else {
+      const correctDisplay = currentQuiz.correctRadical + (zhuyinMap[currentQuiz.correctRadical] ? `(${zhuyinMap[currentQuiz.correctRadical]})` : "");
       selectedButton.classList.add('wrong');
       allButtons[currentQuiz.answerIndex].classList.add('correct');
-      feedbackBox.textContent = '❌ 答錯了喔。正確答案是「' + currentQuiz.correctRadical + '」。' + currentQuiz.rationale;
+      feedbackBox.textContent = '❌ 答錯了喔。正確答案是「' + correctDisplay + '」。' + currentQuiz.rationale;
       feedbackBox.className = 'feedback show-wrong';
       userStats[char].wrong++;
     }
