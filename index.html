@@ -7,7 +7,7 @@
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft JhengHei';
-    background-color: #e0f7fa;
+    background: linear-gradient(135deg, #fff9c4 0%, #e1f5fe 100%);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -15,7 +15,32 @@
     margin: 0;
     padding: 15px;
     box-sizing: border-box;
+    overflow-x: hidden;
   }
+  /* 可愛背景氣泡 */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    z-index: -1;
+    animation: float 10s infinite ease-in-out;
+  }
+  body::before { top: -50px; left: -50px; }
+  body::after { bottom: -50px; right: -50px; animation-delay: -5s; }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(20px, 40px); }
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
   .quiz-container {
     background: #ffffff;
     padding: clamp(15px, 4vw, 30px);
@@ -187,27 +212,40 @@
   .portal-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    gap: 25px;
     margin-top: 20px;
   }
   .portal-card {
     background: #ffffff;
-    border: 2px solid #00bcd4;
-    border-radius: 15px;
-    padding: 20px;
+    border: 6px solid #fff;
+    border-radius: 30px;
+    padding: 30px 20px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
+    box-shadow: 0 10px 0 #b2ebf2; /* 漫畫風立體陰影 */
+    position: relative;
   }
+  .portal-card:nth-child(1) { border-color: #ffe0b2; box-shadow: 0 10px 0 #ffcc80; }
+  .portal-card:nth-child(2) { border-color: #c8e6c9; box-shadow: 0 10px 0 #a5d6a7; }
+
   .portal-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    background-color: #e0f7fa;
+    transform: translateY(5px);
+    box-shadow: 0 5px 0 rgba(0,0,0,0.1);
   }
-  .portal-card i { font-size: 3rem; margin-bottom: 10px; }
-  .portal-card h3 { margin: 10px 0; color: #00796b; }
+  .portal-card i { 
+    font-size: 4rem; 
+    margin-bottom: 15px;
+    filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.1));
+  }
+  .portal-card h3 { 
+    margin: 5px 0; 
+    color: #444; 
+    font-size: 1.5rem;
+  }
+  .portal-card p { font-weight: bold; color: #888; }
   .disabled-card {
     opacity: 0.6;
     cursor: not-allowed;
@@ -231,22 +269,22 @@
   
   <!-- 新增入口網頁區塊 -->
   <div id="portal-ui">
-    <p style="font-size: 1.2rem; color: #555;">請選擇學習類別</p>
+    <p style="font-size: 1.3rem; color: #00796b; font-weight: bold;">🎈 想要挑戰哪一課呢？ 🎈</p>
     <div class="portal-grid">
       <!-- 現有的課程 -->
       <div class="portal-card" onclick="selectCategory('grade1-lower-1-6')">
-        <i class="fas fa-book-open" style="color: #ff9800;"></i>
-        <h3>國小一下</h3>
-        <p>(第 1~6 課)</p>
+        <i class="fas fa-rocket" style="color: #ff9800;"></i>
+        <h3>第一到六課</h3>
+        <p>🚀 準備出發</p>
       </div>
       <!-- 預留未來擴充 -->
       <div class="portal-card" onclick="selectCategory('grade1-lower-7-12')">
-        <i class="fas fa-book-open" style="color: #4caf50;"></i>
-        <h3>國小一下</h3>
-        <p>(第 7~12 課)</p>
+        <i class="fas fa-medal" style="color: #4caf50;"></i>
+        <h3>第七到十二課</h3>
+        <p>🏆 實力挑戰</p>
       </div>
     </div>
-    <p style="font-size: 0.8rem; color: #888; margin-top: 25px; font-style: italic;">※ 本測驗題庫內容出自康軒版國語教材</p>
+    <p style="font-size: 0.9rem; color: #00796b; margin-top: 35px; background: rgba(255,255,255,0.5); display: inline-block; padding: 5px 15px; border-radius: 20px;">📖 出自康軒版國語教材</p>
   </div>
 
   <div id="setup-ui" class="setup-section" style="display:none">
