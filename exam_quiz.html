@@ -22,6 +22,8 @@
   .btn-primary { background-color: #ff9800; width: 100%; margin-top: 15px; }
   .btn-home { background-color: #00bcd4; width: 100%; margin-top: 10px; }
   .stats-card { background: #f9f9f9; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: left; }
+  .stats-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+  .stats-table th, .stats-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
 </style>
 </head>
 <body>
@@ -60,6 +62,7 @@
     <div class="stats-card" id="result-summary"></div>
     <button class="btn btn-primary" onclick="location.reload()">再考一次</button>
     <button class="btn btn-home" onclick="location.href='index.html'">返回大廳</button>
+    <div id="stats-container" style="max-height: 250px; overflow-y: auto; margin-top: 20px;"></div>
   </div>
 </div>
 
@@ -69,6 +72,8 @@
   let currentIdx = 0;
   let score = 0;
   let startTime, timerInterval;
+  let examStats = JSON.parse(localStorage.getItem('examStats')) || {};
+  function saveStats() { localStorage.setItem('examStats', JSON.stringify(examStats)); }
 
   function setSubject(s) {
     currentSubject = s;
@@ -136,16 +141,20 @@
       btn.textContent = opt;
       btn.onclick = () => {
         if (document.getElementById('next-btn').style.visibility === 'visible') return;
+        if (!examStats[data.q]) examStats[data.q] = { correct: 0, wrong: 0 };
+        
         if (opt.toString() === data.a.toString()) {
           btn.classList.add('correct');
           score++;
+          examStats[data.q].correct++;
         } else {
           btn.classList.add('wrong');
-          // 顯示正確答案
           Array.from(container.children).forEach(b => {
             if(b.textContent === data.a.toString()) b.classList.add('correct');
           });
+          examStats[data.q].wrong++;
         }
+        saveStats();
         document.getElementById('next-btn').style.visibility = 'visible';
       };
       container.appendChild(btn);
@@ -171,6 +180,21 @@
       <p>📈 正確率：<b style="color: ${accuracy >= 80 ? '#4caf50' : '#f44336'}">${accuracy}%</b></p>
       <p>⏱️ 總耗時：<b>${Math.floor(elapsed/60)}分${elapsed%60}秒</b></p>
     `;
+    renderStatsTable();
+  }
+
+  function renderStatsTable() {
+    const statsContainer = document.getElementById('stats-container');
+    let html = `<h3>📊 測驗題庫表現</h3><table class="stats-table"><tr><th>題目</th><th>對/錯</th></tr>`;
+    Object.keys(examStats).slice(0, 30).forEach(key => {
+      const d = examStats[key];
+      html += `<tr>
+        <td style="text-align:left">${key}</td>
+        <td>${d.correct} / <span style="color:red">${d.wrong}</span></td>
+      </tr>`;
+    });
+    html += `</table>`;
+    statsContainer.innerHTML = html;
   }
 </script>
 </body>
