@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>造句練習 - 智慧學習樂園</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+  body { font-family: 'Segoe UI', 'Microsoft JhengHei'; background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; padding: 15px; box-sizing: border-box; }
+  .quiz-container { background: #ffffff; padding: 30px; border-radius: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); max-width: 650px; width: 100%; text-align: center; }
+  .question-box { background-color: #fffde7; padding: 25px; border-radius: 15px; margin-bottom: 20px; font-size: 1.6rem; font-weight: bold; color: #444; border: 3px dashed #f06292; line-height: 1.6; }
+  .options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; }
+  .option-btn { background-color: #f5f5f5; border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; font-size: 1.2rem; cursor: pointer; transition: all 0.2s; font-weight: bold; text-align: left; }
+  .option-btn.correct { background-color: #c8e6c9; border-color: #4caf50; }
+  .option-btn.wrong { background-color: #ffcdd2; border-color: #f44336; }
+  .btn { color: white; border: none; padding: 15px; font-size: 1.2rem; border-radius: 25px; cursor: pointer; font-weight: bold; }
+  .btn-primary { background-color: #e91e63; }
+  .btn-home { background-color: #00bcd4; margin-top: 10px; }
+  .info-bar { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; color: #880e4f; }
+</style>
+</head>
+<body>
+<div class="quiz-container">
+  <h1>✍️ 造句練習大挑戰 ✍️</h1>
+  <div id="portal-ui">
+    <p style="font-weight: bold; font-size: 1.2rem;">想要練習哪種句型呢？</p>
+    <button class="btn btn-primary" onclick="initQuiz('easy')" style="width: 80%; background-color: #4caf50; margin-bottom: 10px;">🟢 基礎句型 (10題)</button>
+    <button class="btn btn-primary" onclick="initQuiz('medium')" style="width: 80%; background-color: #ff9800; margin-bottom: 10px;">🟡 進階句型 (20題)</button>
+    <button class="btn btn-home" onclick="location.href='index.html'" style="width: 80%;">🏠 返回大廳</button>
+  </div>
+
+  <div id="quiz-ui" style="display:none">
+    <div class="info-bar">
+      <span id="progress"></span>
+      <span id="timer-display">⏱️ 00:00</span>
+    </div>
+    <div class="question-box" id="question-text"></div>
+    <div class="options-grid" id="options-container"></div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn btn-home" onclick="location.href='index.html'" style="flex: 1;">🏠 放棄</button>
+      <button class="btn btn-primary" id="next-btn" style="visibility:hidden; flex: 2;" onclick="nextQuestion()">下一題 ➔</button>
+    </div>
+  </div>
+
+  <div id="result-ui" style="display:none">
+    <h2>🏆 練習完成囉！</h2>
+    <div id="result-summary" style="font-size: 1.2rem; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
+    <button class="btn btn-primary" onclick="location.reload()" style="width: 100%;">再試一次</button>
+    <button class="btn btn-home" onclick="location.href='index.html'" style="width: 100%;">返回大廳</button>
+  </div>
+</div>
+
+<script>
+  const sentenceData = [
+    { q: "用「...像...」造句，哪一個比較通順？", a: "彎彎的月亮像小船。", opts: ["彎彎的月亮像小船。", "小船像彎彎的月亮。", "月亮在小船上面。", "月亮和小船去跑步。"] },
+    { q: "「妹妹一邊唱歌，一邊（ ）。」括號裡填什麼才對？", a: "跳舞", opts: ["跳舞", "睡覺", "洗澡", "寫字"] },
+    { q: "草地上，（ ）在跑步，（ ）在踢球。", a: "有的...有的...", opts: ["有的...有的...", "不是...而是...", "雖然...但是...", "因為...所以..."] },
+    { q: "「（ ）太陽出來了，（ ）天氣變熱了。」", a: "因為...所以...", opts: ["因為...所以...", "只要...就...", "不僅...而且...", "如果...就..."] },
+    { q: "哪一個句子的意思最清楚？", a: "大樹是小鳥的家。", opts: ["大樹是小鳥的家。", "家大樹小鳥是的。", "小鳥是大樹家。", "家是小鳥大樹。"] },
+    { q: "用「...非常...」造句，哪一個是對的？", a: "這朵花非常漂亮。", opts: ["這朵花非常漂亮。", "非常這朵花漂亮。", "漂亮花這朵非常。", "這朵非常漂亮花。"] },
+    { q: "「我先洗手，（ ）吃飯。」", a: "再", opts: ["再", "在", "才", "都"] },
+    { q: "「（ ）下雨了，（ ）我們不能出去玩。」", a: "因為...所以...", opts: ["因為...所以...", "雖然...但是...", "只要...就...", "不但...而且..."] },
+    { q: "「天上的白雲（ ）可愛的綿羊。」", a: "好像", opts: ["好像", "非常", "一邊", "所以"] },
+    { q: "「媽媽（ ）在看書。」", a: "正在", opts: ["正在", "有的", "可是", "所以"] }
+  ];
+
+  let quizData = [];
+  let currentIdx = 0;
+  let score = 0;
+  let startTime, timerInterval;
+
+  function initQuiz(diff) {
+    document.getElementById('portal-ui').style.display = 'none';
+    document.getElementById('quiz-ui').style.display = 'block';
+    let count = diff === 'easy' ? 5 : 10;
+    quizData = [...sentenceData].sort(() => Math.random() - 0.5).slice(0, count);
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);
+    loadQuestion();
+  }
+
+  function updateTimer() {
+    let elapsed = Math.floor((Date.now() - startTime) / 1000);
+    let m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+    let s = (elapsed % 60).toString().padStart(2, '0');
+    document.getElementById('timer-display').textContent = `⏱️ ${m}:${s}`;
+  }
+
+  function loadQuestion() {
+    const q = quizData[currentIdx];
+    document.getElementById('question-text').textContent = q.q;
+    document.getElementById('progress').textContent = `進度: ${currentIdx + 1} / ${quizData.length}`;
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+    document.getElementById('next-btn').style.visibility = 'hidden';
+
+    q.opts.sort(() => Math.random() - 0.5).forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.textContent = opt;
+      btn.onclick = () => {
+        if (document.getElementById('next-btn').style.visibility === 'visible') return;
+        if (opt === q.a) {
+          btn.classList.add('correct');
+          score++;
+        } else {
+          btn.classList.add('wrong');
+          Array.from(container.children).forEach(b => {
+            if(b.textContent === q.a) b.classList.add('correct');
+          });
+        }
+        document.getElementById('next-btn').style.visibility = 'visible';
+      };
+      container.appendChild(btn);
+    });
+  }
+
+  function nextQuestion() {
+    currentIdx++;
+    if (currentIdx < quizData.length) {
+      loadQuestion();
+    } else {
+      finishQuiz();
+    }
+  }
+
+  function finishQuiz() {
+    clearInterval(timerInterval);
+    let elapsed = Math.floor((Date.now() - startTime) / 1000);
+    document.getElementById('quiz-ui').style.display = 'none';
+    document.getElementById('result-ui').style.display = 'block';
+    let accuracy = Math.round((score / quizData.length) * 100);
+    document.getElementById('result-summary').innerHTML = `
+      <p>🎯 答對題數：<b>${score} / ${quizData.length}</b></p>
+      <p>⏱️ 總共用時：<b>${Math.floor(elapsed/60)}分${elapsed%60}秒</b></p>
+      <p>📈 正確率：<b>${accuracy}%</b></p>
+    `;
+  }
+</script>
+</body>
+</html>
