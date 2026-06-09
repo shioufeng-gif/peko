@@ -17,6 +17,8 @@
   .btn-primary { background-color: #e91e63; }
   .btn-home { background-color: #00bcd4; margin-top: 10px; }
   .info-bar { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; color: #880e4f; }
+  .stats-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+  .stats-table th, .stats-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
 </style>
 </head>
 <body>
@@ -47,6 +49,7 @@
     <div id="result-summary" style="font-size: 1.2rem; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
     <button class="btn btn-primary" onclick="location.reload()" style="width: 100%;">再試一次</button>
     <button class="btn btn-home" onclick="location.href='index.html'" style="width: 100%;">返回大廳</button>
+    <div id="stats-container" style="max-height: 250px; overflow-y: auto; margin-top: 20px;"></div>
   </div>
 </div>
 
@@ -68,6 +71,8 @@
   let currentIdx = 0;
   let score = 0;
   let startTime, timerInterval;
+  let userStats = JSON.parse(localStorage.getItem('sentenceStats')) || {};
+  function saveStats() { localStorage.setItem('sentenceStats', JSON.stringify(userStats)); }
 
   function initQuiz(diff) {
     document.getElementById('portal-ui').style.display = 'none';
@@ -100,15 +105,20 @@
       btn.textContent = opt;
       btn.onclick = () => {
         if (document.getElementById('next-btn').style.visibility === 'visible') return;
+        if (!userStats[q.q]) userStats[q.q] = { correct: 0, wrong: 0 };
+
         if (opt === q.a) {
           btn.classList.add('correct');
           score++;
+          userStats[q.q].correct++;
         } else {
           btn.classList.add('wrong');
           Array.from(container.children).forEach(b => {
             if(b.textContent === q.a) b.classList.add('correct');
           });
+          userStats[q.q].wrong++;
         }
+        saveStats();
         document.getElementById('next-btn').style.visibility = 'visible';
       };
       container.appendChild(btn);
@@ -135,6 +145,27 @@
       <p>⏱️ 總共用時：<b>${Math.floor(elapsed/60)}分${elapsed%60}秒</b></p>
       <p>📈 正確率：<b>${accuracy}%</b></p>
     `;
+    renderStatsTable();
+  }
+
+  function renderStatsTable() {
+    const statsContainer = document.getElementById('stats-container');
+    let html = `<h3>📊 句型掌握度</h3><table class="stats-table"><tr><th>句型</th><th>正確率</th></tr>`;
+    const sorted = Object.keys(userStats).sort((a, b) => {
+      const rateA = userStats[a].wrong / (userStats[a].correct + userStats[a].wrong || 1);
+      const rateB = userStats[b].wrong / (userStats[b].correct + userStats[b].wrong || 1);
+      return rateB - rateA;
+    });
+    sorted.forEach(key => {
+      const d = userStats[key];
+      const acc = Math.round((d.correct / (d.correct + d.wrong)) * 100);
+      html += `<tr>
+        <td style="text-align:left">${key.substring(0, 20)}...</td>
+        <td>${acc}%</td>
+      </tr>`;
+    });
+    html += `</table>`;
+    statsContainer.innerHTML = html;
   }
 </script>
 </body>
