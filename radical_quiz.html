@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>部首大挑戰 - 智慧學習版</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft JhengHei';
+    background: linear-gradient(135deg, #fff9c4 0%, #e1f5fe 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+  /* 可愛背景氣泡 */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    z-index: -1;
+    animation: float 10s infinite ease-in-out;
+  }
+  body::before { top: -50px; left: -50px; }
+  body::after { bottom: -50px; right: -50px; animation-delay: -5s; }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(20px, 40px); }
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .quiz-container {
+    background: #ffffff;
+    padding: clamp(15px, 4vw, 30px);
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+  }
+  h1 {
+    color: #00796b;
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    margin-bottom: 20px;
+  }
+  .setup-section {
+    background: #e8f5e9;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+  }
+  .setup-section select {
+    padding: 10px;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin: 10px 0;
+    width: 90%;
+    max-width: 300px;
+  }
+  
+  /* 頂部資訊列 (進度與計時) */
+  .info-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: #555;
+    font-size: clamp(0.9rem, 3vw, 1.1rem);
+    font-weight: bold;
+    padding: 0 10px;
+  }
+
+  /* 題目框 */
+  .question-box {
+    background-color: #fff9c4;
+    padding: clamp(15px, 4vw, 25px);
+    border-radius: 15px;
+    margin-bottom: 20px;
+    font-size: clamp(1.4rem, 6vw, 2.2rem); /* 自動調整字體大小 */
+    font-weight: bold;
+    color: #333;
+    border: 3px dashed #ffb300;
+  }
+  
+  /* 選項網格 */
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(10px, 3vw, 15px);
+    margin-bottom: 20px;
+  }
+  .option-btn {
+    background-color: #f5f5f5;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: clamp(10px, 2.5vw, 15px);
+    font-size: clamp(1.2rem, 5vw, 1.8rem); /* 自動調整字體大小 */
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: bold;
+    color: #424242;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+  }
+  .zhuyin-text {
+    font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+    color: #00796b;
+    margin-top: 4px;
+    font-weight: normal;
+  }
+  .option-btn:hover:not(:disabled) {
+    background-color: #e3f2fd;
+    border-color: #64b5f6;
+    transform: scale(1.02);
+  }
+  .option-btn.correct {
+    background-color: #c8e6c9;
+    border-color: #4caf50;
+    color: #2e7d32;
+  }
+  .option-btn.wrong {
+    background-color: #ffcdd2;
+    border-color: #f44336;
+    color: #c62828;
+  }
+  .option-btn:disabled {
+    cursor: default;
+  }
+
+  /* 回饋訊息框 */
+  .feedback {
+    min-height: 60px;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: clamp(1rem, 3.5vw, 1.2rem);
+    display: none;
+    line-height: 1.5;
+  }
+  .feedback.show-correct {
+    display: block;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+  }
+  .feedback.show-wrong {
+    display: block;
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+  }
+
+  /* 導覽按鈕區 */
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .btn {
+    flex: 1;
+    min-width: 100px;
+    color: white;
+    border: none;
+    padding: clamp(10px, 3vw, 15px);
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: background-color 0.2s, opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn-primary { background-color: #ff9800; }
+  .btn-secondary { background-color: #9e9e9e; }
+  .btn-home { background-color: #00bcd4; }
+
+  /* 學習統計報表樣式 */
+  .stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+  }
+  .stats-table th, .stats-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  .stats-table th { background: #f5f5f5; color: #333; }
+  .stats-table tr:nth-child(even) { background-color: #fafafa; }
+  .high-error { color: #d32f2f; font-weight: bold; }
+  .perfect { color: #2e7d32; font-weight: bold; }
+  
+  /* 入口網頁樣式 */
+  .portal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+  }
+  .portal-card {
+    background: #ffffff;
+    border: 6px solid #fff;
+    border-radius: 30px;
+    padding: 30px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 10px 0 #b2ebf2; /* 漫畫風立體陰影 */
+    position: relative;
+  }
+  .portal-card:nth-child(1) { border-color: #ffe0b2; box-shadow: 0 10px 0 #ffcc80; }
+  .portal-card:nth-child(2) { border-color: #c8e6c9; box-shadow: 0 10px 0 #a5d6a7; }
+
+  .portal-card:hover {
+    transform: translateY(5px);
+    box-shadow: 0 5px 0 rgba(0,0,0,0.1);
+  }
+  .portal-card i { 
+    font-size: 4rem; 
+    margin-bottom: 15px;
+    filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.1));
+  }
+  .portal-card h3 { 
+    margin: 5px 0; 
+    color: #444; 
+    font-size: 1.5rem;
+  }
+  .portal-card p { font-weight: bold; color: #888; }
+  .disabled-card {
+    opacity: 0.6;
+    cursor: not-allowed;
+    border-color: #ccc;
+  }
+
+  /* 手機直式微調 */
+  @media (max-width: 400px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .nav-buttons { flex-direction: column; }
+    .btn { width: 100%; }
+  }
+</style>
+<!-- 引入 Font Awesome 用於圖標 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div class="quiz-container">
+  <h1>🌟 智慧部首大挑戰 🌟</h1>
+  
+  <!-- 新增入口網頁區塊 -->
+  <div id="portal-ui">
+    <p style="font-size: 1.3rem; color: #00796b; font-weight: bold;">🎈 想要挑戰哪一課呢？ 🎈</p>
+    <div class="portal-grid">
+      <!-- 現有的課程 -->
+      <div class="portal-card" onclick="selectCategory('grade1-lower-1-6')">
+        <i class="fas fa-rocket" style="color: #ff9800;"></i>
+        <h3>第一到六課</h3>
+        <p>🚀 準備出發</p>
+      </div>
+      <!-- 預留未來擴充 -->
+      <div class="portal-card" onclick="selectCategory('grade1-lower-7-12')">
+        <i class="fas fa-medal" style="color: #4caf50;"></i>
+        <h3>第七到十二課</h3>
+        <p>🏆 實力挑戰</p>
+      </div>
+    </div>
+    <br>
+    <button class="btn btn-home" onclick="goHome()" style="width: 200px;">🏠 返回大廳</button>
+    <p style="font-size: 0.9rem; color: #00796b; margin-top: 35px; background: rgba(255,255,255,0.5); display: inline-block; padding: 5px 15px; border-radius: 20px;">📖 出自康軒版國語教材</p>
+  </div>
+
+  <div id="setup-ui" class="setup-section" style="display:none">
+    <h2 id="category-title" style="color: #2e7d32; margin-top: 0;"></h2>
+    <p style="font-size: 1.2rem; font-weight: bold; color: #2e7d32;">請選擇挑戰模式</p>
+    <select id="question-count-select">
+      <option value="10">🟢 簡易級 (10 題)</option>
+      <option value="20">🟡 中等級 (20 題)</option>
+      <option value="50">🔴 困難級 (50 題)</option>
+      <option value="all">🔥 魔王級 (全部作答)</option>
+    </select>
+    <br><br>
+    <button class="btn btn-primary" style="width:80%" onclick="initQuiz()">開始測驗 🚀</button>
+    <button class="btn btn-secondary" style="width:80%; margin-top: 10px;" onclick="showPortal()">⬅️ 返回課程選擇</button>
+  </div>
+
+  <div id="quiz-ui" style="display:none">
+    <div class="info-bar">
+      <span id="progress"></span>
+      <span id="timer-display">⏱️ 00:00</span>
+    </div>
+    <div class="question-box" id="question-text">載入中...</div>
+    <div class="options-grid" id="options-container"></div>
+    <div class="feedback" id="feedback-box"></div>
+    
+    <div class="nav-buttons">
+      <button class="btn btn-home" onclick="goHome()">🏠 首頁</button>
+      <button class="btn btn-secondary" id="prev-btn" onclick="prevQuestion()" style="display:none">⬅️ 上一題</button>
+      <button class="btn btn-primary" id="next-btn" style="visibility:hidden" onclick="nextQuestion()">下一題 ➔</button>
+    </div>
+  </div>
+
+  <div id="result-ui" style="display:none">
+    <div id="result-summary"></div>
+    <button class="btn btn-primary" onclick="goHome()" style="margin-top: 15px; width: 100%;">返回主選單 / 重新測驗</button>
+    <div id="stats-container" style="max-height: 350px; overflow-y: auto; margin-top: 20px;"></div>
+  </div>
+</div>
+
+<script>
+  // 音效合成器
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(isCorrect) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    if (isCorrect) {
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.3);
+    } else {
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.2);
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.4);
+    }
+  }
+
+  // 原有 1~6 課題庫 (93題)
+  const data1to6 = [
+    ["要", "ㄧㄠˋ", "襾", "女", "西", "日"], ["靜", "ㄐㄧㄥˋ", "青", "爭", "月", "立"], ["天", "ㄊㄧㄢ", "大", "一", "人", "二"], ["空", "ㄎㄨㄥ", "穴", "工", "宀", "八"], ["雲", "ㄩㄣˊ", "雨", "二", "厶", "云"], ["水", "ㄕㄨㄟˇ", "水", "亅", "冰", "氵"], ["蟲", "ㄔㄨㄥˊ", "虫", "中", "皿", "口"], ["鳥", "ㄋㄧㄠˇ", "鳥", "隹", "點", "火"], ["草", "ㄘㄠˇ", "艸(艹)", "木", "早", "日"], ["先", "ㄒㄧㄢ", "儿", "牛", "土", "一"], ["完", "ㄨㄢˊ", "宀", "元", "儿", "一"], ["再", "ㄗㄞˋ", "冂", "一", "土", "王"], ["去", "ㄑㄩˋ", "厶", "土", "大", "十"], ["園", "ㄩㄢˊ", "囗", "袁", "口", "衣"], ["聽", "ㄊㄧㄥ", "耳", "口", "斤", "心"], ["沒", "ㄇㄟˊ", "水(氵)", "殳", "几", "又"], ["正", "ㄓㄥˋ", "止", "一", "下", "卜"], ["唱", "ㄔㄤˋ", "口", "日", "曰", "木"], ["著", "ㄓㄜ˙", "艸(艹)", "者", "日", "目"], ["輕", "ㄑㄧㄥ", "車", "巠", "工", "舟"], ["快", "ㄎㄨㄞˋ", "心(忄)", "手", "夬", "彳"], ["歌", "ㄍㄜ", "欠", "哥", "口", "言"], ["出", "ㄔㄨ", "凵", "山", "屮", "止"], ["新", "ㄒㄧㄣ", "斤", "立", "木", "辛"], ["芽", "ㄧㄚˊ", "艸(艹)", "牙", "邪", "木"], ["聞", "ㄨㄣˊ", "耳", "門", "口", "音"], ["身", "ㄕㄣ", "身", "自", "舟", "月"], ["香", "ㄒㄧㄤ", "香", "禾", "日", "曰"], ["呢", "ㄋㄜ˙", "口", "尼", "尸", "匕"], ["媽", "ㄇㄚ", "女", "馬", "灬", "一"], ["音", "ㄧㄣ", "音", "立", "日", "曰"], ["樂", "ㄌㄜˋ", "木", "白", "幺", "糸"], ["會", "ㄏㄨㄟˋ", "曰", "人", "田", "日"], ["始", "ㄕˇ", "女", "台", "口", "厶"], ["來", "ㄌㄞˊ", "人", "木", "十", "夾"], ["重", "ㄓㄨㄥˋ", "里", "千", "車", "日"], ["短", "ㄉㄨㄢˇ", "矢", "豆", "弓", "寸"], ["陣", "ㄓㄣˋ", "阜(左阝)", "車", "邑(右阝)", "斤"], ["過", "ㄍㄨㄛˋ", "辵(辶)", "咼", "口", "彳"], ["後", "ㄏㄡˋ", "彳", "幺", "夂", "止"], ["吃", "ㄔ", "口", "乞", "乙", "气"], ["菜", "ㄘㄞˋ", "艸(艹)", "采", "木", "爪"], ["就", "ㄐㄧㄡˋ", "尢", "京", "尤", "小"], ["桌", "ㄓㄨㄛ", "木", "卜", "卓", "日"], ["真", "ㄓㄣ", "目", "十", "八", "具"], ["鞋", "ㄒㄧㄝˊ", "革", "圭", "土", "巾"], ["回", "ㄏㄨㄟˊ", "囗", "口", "迴", "面"], ["家", "ㄐㄧㄚ", "宀", "豕", "豖", "虫"], ["把", "ㄅㄚˇ", "手(扌)", "巴", "己", "卩"], ["脫", "ㄊㄨㄛ", "肉(月)", "月", "兌", "儿"], ["爸", "ㄅㄚˋ", "父", "巴", "色", "己"], ["靠", "ㄎㄠˋ", "非", "告", "口", "飛"], ["見", "ㄐㄧㄢˋ", "見", "目", "儿", "貝"], ["像", "ㄒㄧㄤˋ", "人(亻)", "象", "豕", "⺈"], ["船", "ㄔㄨㄢˊ", "舟", "几", "口", "鉛"], ["港", "ㄍㄤˇ", "水(氵)", "巷", "己", "巳"], ["口", "ㄎㄡˇ", "口", "囗", "凵", "匚"], ["享", "ㄒㄧㄤˇ", "亠", "子", "口", "高"], ["受", "ㄕㄡˋ", "又", "爪", "冖", "爫"], ["溫", "ㄨㄣ", "水(氵)", "皿", "日", "囚"], ["暖", "ㄋㄨㄢˇ", "日", "爰", "爪", "友"], ["種", "ㄓㄨㄥˇ", "禾", "重", "木", "里"], ["問", "ㄨㄣˋ", "口", "門", "日", "耳"], ["怎", "ㄗㄣˇ", "心", "乍", "欠", "手"], ["做", "ㄗㄨㄛˋ", "人(亻)", "故", "攵", "十"], ["它", "ㄊㄚ", "宀", "匕", "虫", "蛇"], ["才", "ㄘㄞˊ", "手", "木", "扌", "十"], ["需", "ㄒㄩ", "雨", "而", "頁", "彡"], ["於", "ㄩˊ", "方", "仒", "冰", "卜"], ["澆", "ㄐㄧㄠ", "水(氵)", "堯", "土", "兀"], ["陽", "ㄧㄤˊ", "阜(左阝)", "日", "邑(右阝)", "易"], ["光", "ㄍㄨㄤ", "儿", "小", "一", "火"], ["放", "ㄈㄤˋ", "攴(攵)", "方", "斤", "口"], ["院", "ㄩㄢˋ", "阜(左阝)", "完", "宀", "邑(右阝)"], ["公", "ㄍㄨㄥ", "八", "厶", "口", "ㄥ"], ["話", "ㄏㄨㄚˋ", "言", "舌", "口", "十"], ["伴", "ㄅㄢˋ", "人(亻)", "半", "十", "丰"], ["奶", "ㄋㄞˇ", "女", "乃", "弓", "力"], ["跟", "ㄍㄣ", "足", "艮", "止", "走"], ["班", "ㄅㄢ", "玉(王)", "王", "刀", "玨"], ["床", "ㄔㄨㄤˊ", "广", "木", "厂", "庄"], ["弟", "ㄉㄧˋ", "弓", "八", "丷", "矛"], ["她", "ㄊㄚ", "女", "也", "匕", "虫"], ["酒", "ㄐㄧㄡˇ", "酉", "水", "西", "氵"], ["拿", "ㄋㄚˊ", "手", "合", "口", "扌"], ["卡", "ㄎㄚˇ", "卜", "上", "下", "一"], ["片", "ㄆㄧㄢˋ", "片", "爿", "鼎", "斤"], ["給", "ㄍㄟˇ", "糸", "合", "口", "糹"], ["寫", "ㄒㄧㄝˇ", "宀", "舄", "冖", "手"], ["喜", "ㄒㄧˇ", "口", "士", "吉", "豆"], ["歡", "ㄏㄨㄢ", "欠", "雚", "口", "人"], ["您", "ㄋㄧㄣˊ", "心", "你", "人", "小"], ["都", "ㄉㄡ", "邑(右阝)", "者", "日", "阜(左阝)"]
+  ];
+
+  // 新增 7~12 課題庫 (95題)
+  const data7to12 = [
+    ["作", "ㄗㄨㄛˋ", "人(亻)", "乍", "十", "二"], ["夢", "ㄇㄥˋ", "夕", "林", "艸", "目"], ["躺", "ㄊㄤˇ", "身", "尚", "冂", "止"], ["自", "ㄗˋ", "自", "目", "白", "鼻"], ["己", "ㄐㄧˇ", "己", "已", "巳", "乙"], ["變", "ㄅㄧㄢˋ", "言", "絲", "亦", "夊"], ["成", "ㄔㄥˊ", "戈", "厂", "乙", "止"], ["棉", "ㄇㄧㄢˊ", "木", "帛", "巾", "宀"], ["糖", "ㄊㄤˊ", "米", "唐", "口", "廣"], ["黑", "ㄏㄟ", "黑", "里", "灬", "土"], ["鵝", "ㄜˊ", "鳥", "我", "手", "隹"], ["得", "ㄉㄜˊ", "彳", "旦", "寸", "手"], ["更", "ㄍㄥˋ", "曰", "一", "止", "乂"], ["漂", "ㄆㄧㄠˋ", "水(氵)", "票", "西", "二"], ["亮", "ㄌㄧㄤˋ", "亠", "口", "兒", "冖"], ["妹", "ㄇㄟˋ", "女", "未", "木", "十"], ["雨", "ㄩˇ", "雨", "一", "冂", "卜"], ["雙", "ㄕㄨㄤ", "隹", "又", "人", "二"], ["穿", "ㄔㄨㄢ", "穴", "牙", "万", "口"], ["滴", "ㄉㄧ", "水(氵)", "商", "冂", "古"], ["遊", "ㄧㄡˊ", "辵(辶)", "斿", "方", "攴"], ["戲", "ㄒㄧˋ", "戈", "虛", "虍", "皿"], ["顆", "ㄎㄜ", "頁", "果", "田", "木"], ["珍", "ㄓㄣ", "玉(王)", "㐱", "彡", "人"], ["珠", "ㄓㄨ", "玉(王)", "朱", "木", "未"], ["落", "ㄌㄨㄛˋ", "艸(艹)", "各", "口", "夊"], ["面", "ㄇㄧㄢˋ", "面", "囗", "一", "目"], ["魚", "ㄩˊ", "魚", "刀", "田", "灬"], ["缸", "ㄍㄤ", "缶", "工", "土", "山"], ["金", "ㄐㄧㄣ", "金", "人", "王", "土"], ["游", "ㄧㄡˊ", "水(氵)", "斿", "方", "子"], ["彩", "ㄘㄞˇ", "彡", "采", "爪", "木"], ["虹", "ㄏㄨㄥˊ", "虫", "工", "土", "冂"], ["太", "ㄊㄞˋ", "大", "一", "丶", "人"], ["國", "ㄍㄨㄛˊ", "囗", "或", "戈", "一"], ["掃", "ㄙㄠˇ", "手(扌)", "帚", "巾", "冖"], ["除", "ㄔㄨˊ", "阜(左阝)", "余", "人", "禾"], ["洗", "ㄒㄧˇ", "水(氵)", "先", "兒", "土"], ["淨", "ㄐㄧㄥˋ", "水(氵)", "爭", "爪", "刀"], ["馬", "ㄇㄚˇ", "馬", "灬", "一", "冂"], ["低", "ㄉㄧ", "人(亻)", "氐", "氏", "一"], ["刷", "ㄕㄨㄚ", "刀(刂)", "尸", "巾", "月"], ["樹", "ㄕㄨˋ", "木", "壴", "豆", "寸"], ["葉", "ㄧㄝˋ", "艸(艹)", "世", "木", "十"], ["很", "ㄏㄣˇ", "彳", "艮", "止", "目"], ["認", "ㄖㄣˋ", "言", "忍", "心", "刀"], ["送", "ㄙㄨㄥˋ", "辵(辶)", "關", "丷", "天"], ["地", "ㄉㄧˋ", "土", "也", "乙", "乚"], ["化", "ㄏㄨㄚˋ", "匕", "人", "𠂉", "乂"], ["趣", "ㄑㄩˋ", "走", "取", "耳", "又"], ["線", "ㄒㄧㄢˋ", "糸", "泉", "水", "白"], ["風", "ㄈㄥ", "風", "幾", "虫", "乂"], ["箏", "ㄓㄥ", "竹", "爭", "爪", "刀"], ["升", "ㄕㄥ", "十", "廾", "丿", "乙"], ["神", "ㄕㄣˊ", "示(礻)", "申", "冂", "丨"], ["奇", "ㄑㄧˊ", "大", "可", "口", "丁"], ["跑", "ㄆㄠˇ", "足", "包", "勹", "巳"], ["跳", "ㄊㄧㄠˋ", "足", "兆", "兒", "冫"], ["笑", "ㄒㄧㄠˋ", "竹", "夭", "大", "丿"], ["每", "ㄇㄟˇ", "毋", "𠂉", "一", "母"], ["件", "ㄐㄧㄢˋ", "人(亻)", "牛", "牜", "𠂉"], ["事", "ㄕˋ", "亅", "口", "彐", "一"], ["情", "ㄑㄧㄥˊ", "心(忄)", "青", "月", "心"], ["生", "ㄕㄥ", "生", "牛", "一", "土"], ["日", "ㄖˋ", "日", "囗", "冂", "曰"], ["今", "ㄐㄧㄣ", "人", "龴", "𠂉", "乚"], ["記", "ㄐㄧˋ", "言", "己", "巳", "已"], ["時", "ㄕˊ", "日", "寺", "土", "寸"], ["知", "ㄓ", "矢", "口", "大", "矢"], ["道", "ㄉㄠˋ", "辵(辶)", "首", "丷", "自"], ["嗎", "ㄇㄚ˙", "口", "馬", "灬", "一"], ["學", "ㄒㄩㄝˊ", "子", "𦥯", "臼", "乂"], ["收", "ㄕㄡ", "攴(攵)", "ㄐ", "ㄑ", "乂"], ["張", "ㄓㄤ", "弓", "長", "一", "長"], ["祝", "ㄓㄨˋ", "示(礻)", "兄", "口", "兒"], ["福", "ㄈㄨˊ", "示(礻)", "畐", "一", "囗"], ["第", "ㄉㄧˋ", "竹", "弟", "弓", "丷"], ["次", "ㄘˋ", "欠", "二", "冫", "人"], ["謝", "ㄒㄧㄝˋ", "言", "射", "身", "寸"], ["想", "ㄒㄧㄤˇ", "心", "相", "木", "目"], ["燈", "ㄉㄥ", "火", "登", "癶", "豆"], ["前", "ㄑㄧㄢˊ", "刀(刂)", "止", "舟", "月"], ["點", "ㄉㄧㄢˇ", "黑", "占", "卜", "口"], ["半", "ㄅㄢˋ", "十", "丷", "一", "丰"], ["清", "ㄑㄧㄥ", "水(氵)", "青", "月", "心"], ["楚", "ㄔㄨˇ", "木", "疋", "止", "林"], ["停", "ㄊㄧㄥ", "人(亻)", "亭", "亠", "口"], ["休", "ㄒㄧㄡ", "人(亻)", "木", "十", "八"], ["息", "ㄒㄧˊ", "心", "自", "目", "心"], ["兒", "ㄦˊ", "兒", "臼", "乂", "乚"], ["吧", "ㄅㄚ", "口", "巴", "己", "巳"], ["幫", "ㄅㄤ", "巾", "邦", "丰", "邑"], ["加", "ㄐㄧㄚ", "力", "口", "𠂉", "乂"], ["油", "ㄧㄡˊ", "水(氵)", "由", "冂", "土"], ["慢", "ㄇㄢˋ", "心(忄)", "曼", "曰", "罒"]
+  ];
+
+  let currentDataPool = [];
+  let quizData = [];
+  let currentQuestionIndex = 0;
+  let score = 0;
+  let totalQuestions = 10;
+  
+  // 計時器變數
+  let startTime = 0;
+  let timerInterval = null;
+  let totalSecondsElapsed = 0;
+  
+  let userStats = JSON.parse(localStorage.getItem('radicalQuizStats')) || {};
+
+  // 部首與選項組件的注音對照表
+  const zhuyinMap = {
+    "襾": "ㄧㄚˋ", "青": "ㄑㄧㄥ", "大": "ㄉㄚˋ", "一": "ㄧ", "人": "ㄖㄣˊ", "二": "ㄦˋ", "穴": "ㄒㄩㄝˋ", "工": "ㄍㄨㄥ",
+    "雨": "ㄩˇ", "厶": "ㄙ", "云": "ㄩㄣˊ", "水": "ㄕㄨㄟˇ", "水(氵)": "ㄕㄨㄟˇ", "冰": "ㄅㄧㄥ", "虫": "ㄔㄨㄥˊ", "中": "ㄓㄨㄥ",
+    "皿": "ㄇㄧㄣˇ", "鳥": "ㄋㄧㄠˇ", "隹": "ㄓㄨㄟ", "火": "ㄏㄨㄛˇ", "艸(艹)": "ㄘㄠˇ", "早": "ㄗㄠˇ", "儿": "ㄦˊ", "牛": "ㄋㄧㄡˊ",
+    "土": "ㄊㄨˇ", "宀": "ㄇㄧㄢˊ", "元": "ㄩㄢˊ", "冂": "ㄐㄩㄥ", "王": "ㄨㄤˊ", "囗": "ㄨㄟˊ", "袁": "ㄩㄢˊ", "耳": "ㄦˇ",
+    "斤": "ㄐㄧㄣ", "止": "ㄓˇ", "日": "ㄖˋ", "曰": "ㄩㄝ", "車": "ㄔㄜ", "巠": "ㄐㄧㄥ", "心(忄)": "ㄒㄧㄣ", "欠": "ㄑㄧㄢˋ",
+    "哥": "ㄍㄜ", "凵": "ㄎㄢˇ", "山": "ㄕㄢ", "立": "ㄌㄧˋ", "牙": "ㄧㄚˊ", "身": "ㄕㄣ", "門": "ㄇㄣˊ", "自": "ㄗˋ",
+    "香": "ㄒㄧㄤ", "禾": "ㄏㄜˊ", "尼": "ㄋㄧˊ", "女": "ㄋㄩˇ", "馬": "ㄇㄚˇ", "白": "ㄅㄞˊ", "台": "ㄊㄞˊ", "來": "ㄌㄞˊ",
+    "里": "ㄌㄧˇ", "千": "ㄑㄧㄢ", "短": "ㄉㄨㄢˇ", "矢": "ㄕˇ", "豆": "ㄉㄡˋ", "弓": "ㄍㄨㄥ", "寸": "ㄘㄨㄣˋ", "阜(左阝)": "ㄈㄨˋ",
+    "邑(右阝)": "ㄧˋ", "辵(辶)": "ㄔㄨㄛˋ", "咼": "ㄍㄨㄛ", "彳": "ㄔˋ", "乞": "ㄑㄧˇ", "菜": "ㄘㄞˋ", "采": "ㄘㄞˇ", "目": "ㄇㄨˋ",
+    "革": "ㄍㄜˊ", "圭": "ㄍㄨㄟ", "回": "ㄏㄨㄟˊ", "家": "ㄐㄧㄚ", "豕": "ㄕˇ", "把": "ㄅㄚˇ", "手(扌)": "ㄕㄡˇ", "巴": "ㄅㄚ", "夕": "ㄒㄧ",
+    "戈": "ㄍㄜ", "米": "ㄇㄧˇ", "缶": "ㄈㄡˇ", "彡": "ㄕㄢ", "面": "ㄇㄧㄢˋ", "魚": "ㄩˊ", "金": "ㄐㄧㄣ", "刀(刂)": "ㄉㄠ",
+    "走": "ㄗㄡˇ", "竹": "ㄓㄨˊ", "毋": "ㄨˊ", "亅": "ㄐㄩㄝˊ", "生": "ㄕㄥ", "子": "ㄗˇ", "巾": "ㄐㄧㄣ", "力": "ㄌㄧˋ",
+    "示(礻)": "ㄕˋ", "父": "ㄈㄨˋ", "人(亻)": "ㄖㄣˊ", "亠": "ㄊㄡˊ", "尢": "ㄤ", "爪": "ㄓㄠˇ",
+    "肉(月)": "ㄖㄡˋ", "爸": "ㄅㄚˋ", "非": "ㄈㄟ", "見": "ㄐㄧㄢˋ", "舟": "ㄓㄡ", "享": "ㄒㄧㄤˇ", "受": "ㄕㄡˋ", "爪": "ㄓㄠˇ",
+    "溫": "ㄨㄣ", "暖": "ㄋㄨㄢˇ", "乍": "ㄓㄚˋ", "做": "ㄗㄨㄛˋ", "它": "ㄊㄚ", "匕": "ㄅㄧˇ", "才": "ㄘㄞˊ", "需": "ㄒㄩ",
+    "而": "ㄦˊ", "方": "ㄈㄤ", "易": "ㄧˋ", "光": "ㄍㄨㄤ", "攴(攵)": "ㄆㄨ", "完": "ㄨㄢˊ", "八": "ㄅㄚ", "言": "ㄧㄢˊ",
+    "跟": "ㄍㄣ", "足": "ㄗㄨˊ", "艮": "ㄍㄣˇ", "班": "ㄅㄢ", "玉(王)": "ㄩˋ", "床": "ㄔㄨㄤˊ", "广": "ㄧㄢˇ", "弟": "ㄉㄧˋ",
+    "酉": "ㄧㄡˇ", "卜": "ㄅㄨˇ", "片": "ㄆㄧㄢˋ", "糸": "ㄇㄧˋ", "喜": "ㄒㄧˇ", "吉": "ㄐㄧˊ", "歡": "ㄏㄨㄢ", "都": "ㄉㄡ", "您": "ㄋㄧㄣˊ"
+  };
+
+  function saveStats() { localStorage.setItem('radicalQuizStats', JSON.stringify(userStats)); }
+
+  function getErrorRate(char) {
+    if (!userStats[char]) return 0.5;
+    const total = userStats[char].correct + userStats[char].wrong;
+    if (total === 0) return 0.5;
+    return userStats[char].wrong / total;
+  }
+
+  function shuffleArray(array) {
+    let newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  }
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      totalSecondsElapsed = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('timer-display').textContent = `⏱️ ${formatTime(totalSecondsElapsed)}`;
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+  }
+
+  // 入口網頁選擇類別
+  function selectCategory(category) {
+    document.getElementById('portal-ui').style.display = 'none';
+    document.getElementById('setup-ui').style.display = 'block';
+    
+    const selectBox = document.getElementById('question-count-select');
+    if (category === 'grade1-lower-1-6') {
+      currentDataPool = data1to6;
+      document.getElementById('category-title').textContent = '📚 國小一下 (1~6課)';
+    } else if (category === 'grade1-lower-7-12') {
+      currentDataPool = data7to12;
+      document.getElementById('category-title').textContent = '📚 國小一下 (7~12課)';
+    }
+
+    // 更新「全部作答」選項的題數文字
+    selectBox.options[selectBox.options.length - 1].textContent = `全部作答 (${currentDataPool.length}題大魔王)`;
+  }
+
+  // 顯示課程選擇畫面 (內部分流)
+  function showPortal() {
+    document.getElementById('setup-ui').style.display = 'none';
+    document.getElementById('result-ui').style.display = 'none';
+    document.getElementById('portal-ui').style.display = 'block';
+  }
+
+  // 返回首頁邏輯 (現在會返回總入口頁面)
+  function goHome() {
+    stopTimer();
+    window.location.href = 'index.html'; // 導向新的總入口頁面
+  }
+
+  function initQuiz() {
+    const selectBox = document.getElementById('question-count-select');
+    totalQuestions = selectBox.value === 'all' ? currentDataPool.length : parseInt(selectBox.value);
+
+    let sortedData = [...currentDataPool].sort((a, b) => {
+      let rateA = getErrorRate(a[0]);
+      let rateB = getErrorRate(b[0]);
+      return (rateB - rateA) + (Math.random() * 0.4 - 0.2); 
+    });
+
+    const selectedWords = sortedData.slice(0, totalQuestions);
+    
+    quizData = selectedWords.map(item => {
+      const char = item[0];
+      const correctRadical = item[2];
+      
+      let uniqueOptions = new Set();
+      uniqueOptions.add(correctRadical); 
+      
+      let wrongPool = [item[3], item[4], item[5]];
+      wrongPool.forEach(opt => uniqueOptions.add(opt));
+
+      while(uniqueOptions.size < 4) {
+        let randomChar = currentDataPool[Math.floor(Math.random() * currentDataPool.length)][2];
+        uniqueOptions.add(randomChar);
+      }
+
+      const optionsArray = shuffleArray(Array.from(uniqueOptions));
+      const answerIndex = optionsArray.indexOf(correctRadical);
+
+      return {
+        char: char,
+        question: `「${char}」(${item[1]}) 的部首是？`,
+        options: optionsArray,
+        answerIndex: answerIndex,
+        correctRadical: correctRadical,
+        rationale: `「${char}」的部首是「${correctRadical}」部喔！`,
+        userAnswer: null // 紀錄玩家選的答案
+      };
+    });
+
+    document.getElementById('setup-ui').style.display = 'none';
+    document.getElementById('quiz-ui').style.display = 'block';
+    
+    currentQuestionIndex = 0;
+    score = 0;
+    totalSecondsElapsed = 0;
+    document.getElementById('timer-display').textContent = `⏱️ 00:00`;
+    
+    startTimer();
+    loadQuestion();
+  }
+
+  function loadQuestion() {
+    const currentQuiz = quizData[currentQuestionIndex];
+    document.getElementById('question-text').textContent = currentQuiz.question;
+    document.getElementById('progress').textContent = `進度: ${currentQuestionIndex + 1} / ${totalQuestions}`;
+    
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackBox = document.getElementById('feedback-box');
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+
+    optionsContainer.innerHTML = '';
+    feedbackBox.className = 'feedback';
+    feedbackBox.textContent = '';
+    nextBtn.style.visibility = 'hidden';
+    nextBtn.textContent = (currentQuestionIndex === totalQuestions - 1) ? '看成績 ➔' : '下一題 ➔';
+
+    // 判斷是否顯示「上一題」按鈕
+    prevBtn.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+
+    currentQuiz.options.forEach((option, index) => {
+      const button = document.createElement('button');
+      const zhuyin = zhuyinMap[option] || "";
+      button.innerHTML = `<span>${option}</span>${zhuyin ? `<span class="zhuyin-text">${zhuyin}</span>` : ""}`;
+      button.className = 'option-btn';
+      
+      // 如果這題之前已經作答過了，直接顯示結果不允許再點擊
+      if (currentQuiz.userAnswer !== null) {
+        button.disabled = true;
+        if (index === currentQuiz.answerIndex) {
+          button.classList.add('correct'); // 正確答案標記
+        }
+        if (index === currentQuiz.userAnswer && currentQuiz.userAnswer !== currentQuiz.answerIndex) {
+          button.classList.add('wrong'); // 玩家選錯的標記
+        }
+      } else {
+        button.onclick = () => selectAnswer(index, button);
+      }
+      
+      optionsContainer.appendChild(button);
+    });
+
+    // 如果已經作答過，直接顯示回饋文字跟下一題按鈕
+    if (currentQuiz.userAnswer !== null) {
+      nextBtn.style.visibility = 'visible';
+      const correctDisplay = currentQuiz.correctRadical + (zhuyinMap[currentQuiz.correctRadical] ? `(${zhuyinMap[currentQuiz.correctRadical]})` : "");
+      if (currentQuiz.userAnswer === currentQuiz.answerIndex) {
+        feedbackBox.textContent = '⭕ 此題您答對了！' + currentQuiz.rationale;
+        feedbackBox.className = 'feedback show-correct';
+      } else {
+        feedbackBox.textContent = '❌ 此題您答錯了。正確答案是「' + correctDisplay + '」。' + currentQuiz.rationale;
+        feedbackBox.className = 'feedback show-wrong';
+      }
+    }
+  }
+
+  function selectAnswer(selectedIndex, selectedButton) {
+    const currentQuiz = quizData[currentQuestionIndex];
+    const isCorrect = (selectedIndex === currentQuiz.answerIndex);
+    const char = currentQuiz.char;
+    const allButtons = document.querySelectorAll('.option-btn');
+
+    // 紀錄玩家的答案 (避免上一題返回後可以無限刷分)
+    currentQuiz.userAnswer = selectedIndex;
+
+    playSound(isCorrect);
+    allButtons.forEach(btn => btn.disabled = true);
+
+    if (!userStats[char]) {
+      userStats[char] = { correct: 0, wrong: 0 };
+    }
+
+    const feedbackBox = document.getElementById('feedback-box');
+
+    if (isCorrect) {
+      selectedButton.classList.add('correct');
+      feedbackBox.textContent = '⭕ 答對了！' + currentQuiz.rationale;
+      feedbackBox.className = 'feedback show-correct';
+      userStats[char].correct++;
+      score++;
+    } else {
+      const correctDisplay = currentQuiz.correctRadical + (zhuyinMap[currentQuiz.correctRadical] ? `(${zhuyinMap[currentQuiz.correctRadical]})` : "");
+      selectedButton.classList.add('wrong');
+      allButtons[currentQuiz.answerIndex].classList.add('correct');
+      feedbackBox.textContent = '❌ 答錯了喔。正確答案是「' + correctDisplay + '」。' + currentQuiz.rationale;
+      feedbackBox.className = 'feedback show-wrong';
+      userStats[char].wrong++;
+    }
+
+    saveStats();
+    document.getElementById('next-btn').style.visibility = 'visible';
+  }
+
+  // 返回上一題邏輯
+  function prevQuestion() {
+    if (currentQuestionIndex > 0) {
+      currentQuestionIndex--;
+      loadQuestion();
+    }
+  }
+
+  function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < quizData.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    stopTimer();
+    document.getElementById('quiz-ui').style.display = 'none';
+    const resultUi = document.getElementById('result-ui');
+    resultUi.style.display = 'block';
+    
+    const summaryBox = document.getElementById('result-summary');
+    const percentage = Math.round((score / totalQuestions) * 100);
+    
+    let titleHtml = '';
+    if (percentage >= 80) {
+      titleHtml = `<h2>🎉 測驗完成！太棒了！</h2>`;
+    } else {
+      titleHtml = `<h2>💪 測驗完成！繼續加油！</h2>`;
+    }
+    
+    summaryBox.innerHTML = `${titleHtml}
+      <div style="background:#f1f8e9; padding: 15px; border-radius: 10px; display:inline-block; margin-bottom: 10px;">
+        <p style="font-size:1.3rem; margin:5px 0;">🎯 答對題數：<strong>${score} / ${totalQuestions}</strong> (${percentage}分)</p>
+        <p style="font-size:1.1rem; margin:5px 0; color:#555;">⏱️ 總作答時間：<strong>${formatTime(totalSecondsElapsed)}</strong></p>
+      </div>
+    `;
+
+    renderStatsTable();
+  }
+
+  function renderStatsTable() {
+    const statsContainer = document.getElementById('stats-container');
+    
+    let html = `<h3>📊 個人學習統計 (依錯誤率排序)</h3>`;
+    html += `<table class="stats-table">
+              <tr>
+                <th>單字</th>
+                <th>正確次數</th>
+                <th>錯誤次數</th>
+                <th>正確率</th>
+              </tr>`;
+
+    const sortedStats = Object.keys(userStats).sort((a, b) => {
+      const rateA = userStats[a].wrong / (userStats[a].correct + userStats[a].wrong || 1);
+      const rateB = userStats[b].wrong / (userStats[b].correct + userStats[b].wrong || 1);
+      return rateB - rateA;
+    });
+
+    sortedStats.forEach(char => {
+      const data = userStats[char];
+      const total = data.correct + data.wrong;
+      const accRate = Math.round((data.correct / total) * 100);
+      
+      let rateClass = '';
+      if (accRate < 60 && total > 0) rateClass = 'high-error';
+      else if (accRate === 100) rateClass = 'perfect';
+
+      html += `<tr>
+                 <td style="font-size:1.2rem; font-weight:bold;">${char}</td>
+                 <td>${data.correct}</td>
+                 <td class="${data.wrong > 0 ? 'high-error' : ''}">${data.wrong}</td>
+                 <td class="${rateClass}">${accRate}%</td>
+               </tr>`;
+    });
+
+    html += `</table>`;
+    statsContainer.innerHTML = html;
+  }
+</script>
+</body>
+</html>
