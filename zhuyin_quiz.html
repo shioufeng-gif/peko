@@ -18,6 +18,8 @@
   .btn { color: white; border: none; padding: 15px; font-size: 1.2rem; border-radius: 25px; cursor: pointer; font-weight: bold; }
   .btn-primary { background-color: #f44336; }
   .btn-home { background-color: #00bcd4; margin-top: 10px; }
+  .stats-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+  .stats-table th, .stats-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
   .feedback { padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
   .feedback.show-correct { display: block; background-color: #e8f5e9; color: #2e7d32; }
   .feedback.show-wrong { display: block; background-color: #ffebee; color: #c62828; }
@@ -53,6 +55,7 @@
     <div id="result-summary" style="font-size: 1.2rem; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
     <button class="btn btn-primary" onclick="location.reload()" style="width: 100%;">再試一次</button>
     <button class="btn btn-home" onclick="location.href='index.html'" style="width: 100%;">返回大廳</button>
+    <div id="stats-container" style="max-height: 250px; overflow-y: auto; margin-top: 20px;"></div>
   </div>
 </div>
 
@@ -95,6 +98,8 @@
   let currentIdx = 0;
   let score = 0;
   let startTime, timerInterval;
+  let userStats = JSON.parse(localStorage.getItem('zhuyinStats')) || {};
+  function saveStats() { localStorage.setItem('zhuyinStats', JSON.stringify(userStats)); }
 
   function initQuiz(difficulty) {
     document.getElementById('portal-ui').style.display = 'none';
@@ -141,16 +146,21 @@
       btn.textContent = opt;
       btn.onclick = () => {
         if (document.getElementById('next-btn').style.visibility === 'visible') return;
+        if (!userStats[q[0]]) userStats[q[0]] = { correct: 0, wrong: 0 };
+        
         if (opt === q[1]) {
           btn.classList.add('correct');
           score++;
           document.getElementById('feedback-box').textContent = "⭕ 太棒了！答對了！";
           document.getElementById('feedback-box').className = "feedback show-correct";
+          userStats[q[0]].correct++;
         } else {
           btn.classList.add('wrong');
           document.getElementById('feedback-box').textContent = `❌ 哎呀，答案是 ${q[1]}`;
           document.getElementById('feedback-box').className = "feedback show-wrong";
+          userStats[q[0]].wrong++;
         }
+        saveStats();
         document.getElementById('next-btn').style.visibility = 'visible';
       };
       container.appendChild(btn);
@@ -178,6 +188,31 @@
       <p>⏱️ 總共花費：<b>${Math.floor(elapsed/60)}分${elapsed%60}秒</b></p>
       <p>📈 正確率：<b>${accuracy}%</b></p>
     `;
+    renderStatsTable();
+  }
+
+  function renderStatsTable() {
+    const statsContainer = document.getElementById('stats-container');
+    let html = `<h3>📊 學習統計 (錯誤率排序)</h3><table class="stats-table"><tr><th>題目</th><th>對/錯</th><th>正確率</th></tr>`;
+    
+    const sorted = Object.keys(userStats).sort((a, b) => {
+      const rateA = userStats[a].wrong / (userStats[a].correct + userStats[a].wrong || 1);
+      const rateB = userStats[b].wrong / (userStats[b].correct + userStats[b].wrong || 1);
+      return rateB - rateA;
+    });
+
+    sorted.forEach(key => {
+      const d = userStats[key];
+      const total = d.correct + d.wrong;
+      const acc = Math.round((d.correct / total) * 100);
+      html += `<tr>
+        <td style="font-size:1.1rem; font-weight:bold;">${key}</td>
+        <td>${d.correct} / <span style="color:red">${d.wrong}</span></td>
+        <td>${acc}%</td>
+      </tr>`;
+    });
+    html += `</table>`;
+    statsContainer.innerHTML = html;
   }
 </script>
 </body>
