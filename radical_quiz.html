@@ -375,6 +375,7 @@
   let startTime = 0;
   let timerInterval = null;
   let totalSecondsElapsed = 0;
+  let restReminderShown = false;
   
   let userStats = JSON.parse(localStorage.getItem('radicalQuizStats')) || {};
 
@@ -426,10 +427,16 @@
 
   function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
+    restReminderShown = false;
     startTime = Date.now();
     timerInterval = setInterval(() => {
       totalSecondsElapsed = Math.floor((Date.now() - startTime) / 1000);
       document.getElementById('timer-display').textContent = `⏱️ ${formatTime(totalSecondsElapsed)}`;
+
+      if (totalSecondsElapsed >= 1200 && !restReminderShown) {
+        restReminderShown = true;
+        alert("小朋友，你已經練習 20 分鐘囉！休息一下眼睛吧！");
+      }
     }, 1000);
   }
 
