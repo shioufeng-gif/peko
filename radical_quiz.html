@@ -139,6 +139,22 @@
     border-color: #f44336;
     color: #c62828;
   }
+  /* 連續答對動畫樣式 */
+  .streak-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 2000;
+    pointer-events: none;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: center; opacity: 0;
+  }
+  .streak-overlay.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  .streak-pikmin { font-size: 5rem; display: block; margin-bottom: 10px; animation: bounce 0.8s infinite; }
+
   .option-btn:disabled {
     cursor: default;
   }
@@ -326,6 +342,13 @@
   </div>
 </div>
 
+<!-- 連續答對 3 題的動畫彈窗 -->
+<div id="streak-animation" class="streak-overlay">
+  <div class="streak-pikmin"><i class="fas fa-seedling"></i></div>
+  <div style="font-size: 1.5rem; font-weight: bold; color: #00796b;">太棒了！<br>連續答對 3 題！</div>
+  <div style="font-size: 1.2rem; margin-top: 10px; color: #ff9800;">🌟 皮克敏為你加油 🌟</div>
+</div>
+
 <script>
   // 音效合成器
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -375,6 +398,7 @@
   let startTime = 0;
   let timerInterval = null;
   let totalSecondsElapsed = 0;
+  let streakCounter = 0;
   let restReminderShown = false;
   
   let userStats = JSON.parse(localStorage.getItem('radicalQuizStats')) || {};
@@ -427,6 +451,7 @@
 
   function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
+    streakCounter = 0;
     restReminderShown = false;
     startTime = Date.now();
     timerInterval = setInterval(() => {
@@ -438,6 +463,17 @@
         alert("小朋友，你已經練習 20 分鐘囉！休息一下眼睛吧！");
       }
     }, 1000);
+  }
+
+  function showStreakAnimation() {
+    const anim = document.getElementById('streak-animation');
+    const pikminIcon = anim.querySelector('.streak-pikmin i');
+    const colors = ['#ff5252', '#448aff', '#ffd740', '#9c27b0', '#4caf50'];
+    pikminIcon.style.color = colors[Math.floor(Math.random() * colors.length)];
+    anim.classList.add('show');
+    setTimeout(() => {
+      anim.classList.remove('show');
+    }, 2000);
   }
 
   function stopTimer() {
@@ -606,8 +642,11 @@
       feedbackBox.textContent = '⭕ 答對了！' + currentQuiz.rationale;
       feedbackBox.className = 'feedback show-correct';
       userStats[char].correct++;
+      streakCounter++;
       score++;
+      if (streakCounter > 0 && streakCounter % 3 === 0) showStreakAnimation();
     } else {
+      streakCounter = 0;
       const correctDisplay = currentQuiz.correctRadical + (zhuyinMap[currentQuiz.correctRadical] ? `(${zhuyinMap[currentQuiz.correctRadical]})` : "");
       selectedButton.classList.add('wrong');
       allButtons[currentQuiz.answerIndex].classList.add('correct');
