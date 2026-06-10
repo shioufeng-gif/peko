@@ -36,24 +36,6 @@
     50% { transform: translate(20px, 40px); }
   }
 
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-
-  /* 皮克敏漂浮動畫 */
-  .pikmin-float {
-    position: fixed;
-    z-index: -1;
-    font-size: 2.5rem;
-    pointer-events: none;
-    opacity: 0.6;
-    filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.2));
-  }
-  .red-pikmin { color: #ff5252; left: 10%; top: 20%; animation: bounce 3s infinite; }
-  .blue-pikmin { color: #448aff; right: 15%; bottom: 20%; animation: float 12s infinite; }
-  .yellow-pikmin { color: #ffd740; left: 20%; bottom: 10%; animation: bounce 4s infinite; }
-
   /* 卡片上的皮克敏裝飾 */
   .pikmin-sticker {
     position: absolute;
@@ -68,34 +50,6 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
-
-  /* 側邊可愛角色樣式 */
-  .side-character {
-    position: fixed;
-    bottom: 40px;
-    z-index: 50;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    animation: bounce 4s infinite ease-in-out;
-    pointer-events: none; /* 避免擋住點擊 */
-  }
-  .char-pikachu { left: 20px; }
-  .char-pikmin { right: 20px; }
-  
-  .char-icon {
-    font-size: 5rem;
-    filter: drop-shadow(3px 3px 0px rgba(0,0,0,0.1));
-  }
-  .char-label {
-    background: white;
-    padding: 5px 12px;
-    border-radius: 15px;
-    font-weight: bold;
-    font-size: 0.9rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    margin-top: -10px;
   }
 
   /* 新增主要入口頁面的容器樣式 */
@@ -333,33 +287,11 @@
     .nav-buttons { flex-direction: column; }
     .btn { width: 100%; }
   }
-
-  /* 當螢幕不夠寬時隱藏角色，避免擋到內容 */
-  @media (max-width: 1050px) {
-    .side-character { display: none; }
-  }
 </style>
 <!-- 引入 Font Awesome 用於圖標 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> <!-- 確保 Font Awesome 仍然被引入 -->
 </head>
 <body>
-
-<!-- 背景漂浮的皮克敏小圖示 -->
-<div class="pikmin-float red-pikmin"><i class="fas fa-seedling"></i></div>
-<div class="pikmin-float blue-pikmin"><i class="fas fa-fan"></i></div>
-<div class="pikmin-float yellow-pikmin"><i class="fas fa-bolt"></i></div>
-
-<!-- 左右兩邊的角色 -->
-<div class="side-character char-pikachu">
-  <div class="char-icon">⚡📚</div>
-  <div class="char-label" style="color: #fbc02d; border: 2px solid #fbc02d;">皮卡丘認真讀</div>
-</div>
-
-<div class="side-character char-pikmin">
-  <div class="char-icon">🌱📖</div>
-  <div class="char-label" style="color: #4caf50; border: 2px solid #4caf50;">皮克敏愛看書</div>
-</div>
-
 <div class="main-portal-container">
   <h1>✨ 智慧學習樂園 <i class="fas fa-leaf" style="color: #4caf50;"></i> ✨</h1>
   <p style="font-size: 1.4rem; color: #00796b; font-weight: bold; margin-bottom: 30px;">選擇您想挑戰的學習項目！</p>
