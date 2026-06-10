@@ -22,6 +22,22 @@
   .btn-primary { background-color: #ff9800; width: 100%; margin-top: 15px; }
   .btn-home { background-color: #00bcd4; width: 100%; margin-top: 10px; }
   .stats-card { background: #f9f9f9; padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: left; }
+  /* 連續答對動畫樣式 */
+  .streak-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 2000;
+    pointer-events: none;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: center; opacity: 0;
+  }
+  .streak-overlay.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  .streak-pikmin { font-size: 5rem; display: block; margin-bottom: 10px; animation: bounce 0.8s infinite; }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
   .stats-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
   .stats-table th, .stats-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
 </style>
@@ -66,12 +82,20 @@
   </div>
 </div>
 
+<!-- 連續答對 3 題的動畫彈窗 -->
+<div id="streak-animation" class="streak-overlay">
+  <div class="streak-pikmin"><i class="fas fa-seedling"></i></div>
+  <div style="font-size: 1.5rem; font-weight: bold; color: #00796b;">太棒了！<br>連續答對 3 題！</div>
+  <div style="font-size: 1.2rem; margin-top: 10px; color: #673ab7;">🌟 皮克敏為你加油 🌟</div>
+</div>
+
 <script>
   let currentSubject = 'ZH';
   let examData = [];
   let currentIdx = 0;
   let score = 0;
   let startTime, timerInterval;
+  let streakCounter = 0;
   let restReminderShown = false;
   let examStats = JSON.parse(localStorage.getItem('examStats')) || {};
 
@@ -190,6 +214,7 @@
   }
 
   function startExam(diff) {
+    streakCounter = 0;
     restReminderShown = false;
     examData = generateExamData(currentSubject, diff);
     document.getElementById('portal-ui').style.display = 'none';
@@ -198,6 +223,17 @@
     startTime = Date.now();
     timerInterval = setInterval(updateTimer, 1000);
     renderQuestion();
+  }
+
+  function showStreakAnimation() {
+    const anim = document.getElementById('streak-animation');
+    const pikminIcon = anim.querySelector('.streak-pikmin i');
+    const colors = ['#ff5252', '#448aff', '#ffd740', '#9c27b0', '#4caf50'];
+    pikminIcon.style.color = colors[Math.floor(Math.random() * colors.length)];
+    anim.classList.add('show');
+    setTimeout(() => {
+      anim.classList.remove('show');
+    }, 2000);
   }
 
   function updateTimer() {
@@ -267,9 +303,12 @@
         
         if (opt.toString() === data.a.toString()) {
           btn.classList.add('correct');
+          streakCounter++;
           score++;
           examStats[data.q].correct++;
+          if (streakCounter > 0 && streakCounter % 3 === 0) showStreakAnimation();
         } else {
+          streakCounter = 0;
           btn.classList.add('wrong');
           Array.from(container.children).forEach(b => {
             if(b.textContent === data.a.toString()) b.classList.add('correct');
