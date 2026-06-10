@@ -63,7 +63,7 @@
     if (!text) return "";
     return text.split('').map(char => {
       if (zhuyinMap[char]) {
-        return `${char}<small style="font-size: 0.5em; color: #880e4f; vertical-align: baseline; margin-left: 1px;">(${zhuyinMap[char]})</small>`;
+        return `${char}<small style="font-size: 0.7em; color: #d81b60; vertical-align: middle; margin-left: 2px; font-weight: bold;">(${zhuyinMap[char]})</small>`;
       }
       return char;
     }).join('');
