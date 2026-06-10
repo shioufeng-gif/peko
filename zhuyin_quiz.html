@@ -98,12 +98,14 @@
   let currentIdx = 0;
   let score = 0;
   let startTime, timerInterval;
+  let restReminderShown = false;
   let userStats = JSON.parse(localStorage.getItem('zhuyinStats')) || {};
   function saveStats() { localStorage.setItem('zhuyinStats', JSON.stringify(userStats)); }
 
   function initQuiz(difficulty) {
     document.getElementById('portal-ui').style.display = 'none';
     document.getElementById('quiz-ui').style.display = 'block';
+    restReminderShown = false;
     
     let sourcePool = zhuyinData[difficulty];
     let count = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 50;
@@ -127,6 +129,11 @@
     let m = Math.floor(elapsed / 60).toString().padStart(2, '0');
     let s = (elapsed % 60).toString().padStart(2, '0');
     document.getElementById('timer-display').textContent = `⏱️ ${m}:${s}`;
+
+    if (elapsed >= 1200 && !restReminderShown) {
+      restReminderShown = true;
+      alert("小朋友，你已經練習 20 分鐘囉！休息一下眼睛吧！");
+    }
   }
 
   function loadQuestion() {
