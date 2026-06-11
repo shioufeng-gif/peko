@@ -99,6 +99,22 @@
   let restReminderShown = false;
   let examStats = JSON.parse(localStorage.getItem('examStats')) || {};
 
+  // 注音對照表 (涵蓋大考題庫常用字)
+  const zhuyinMap = {
+    "用": "ㄩㄥˋ", "造": "ㄗㄠˋ", "句": "ㄐㄩˋ", "哪": "ㄋㄚˇ", "一": "ㄧ", "個": "ㄍㄜ˙", "比": "ㄅㄧˇ", "較": "ㄐㄧㄠˋ", "通": "ㄊㄨㄥ", "順": "ㄕㄨㄣˋ", "像": "ㄒㄧㄤˋ", "彎": "ㄨㄢ", "的": "ㄉㄜ˙", "月": "ㄩㄝˋ", "亮": "ㄌㄧㄤˋ", "小": "ㄒㄧㄠˇ", "船": "ㄔㄨㄢˊ", "在": "ㄗㄞˋ", "上": "ㄕㄤˋ", "面": "ㄇㄧㄢˋ", "和": "ㄏㄢˋ", "去": "ㄑㄩˋ", "跑": "ㄆㄠˇ", "步": "ㄅㄨˋ", "妹": "ㄇㄟˋ", "邊": "ㄅㄧㄢ", "唱": "ㄔㄤˋ", "歌": "ㄍㄜ", "括": "ㄍㄨㄚ", "號": "ㄏㄠˋ", "裡": "ㄌㄧˇ", "填": "ㄊㄧㄢˊ", "什": "ㄕㄜˊ", "麼": "ㄇㄜ˙", "才": "ㄘㄞˊ", "對": "ㄉㄨㄟˋ", "跳": "ㄊㄧㄠˋ", "舞": "ㄨˇ", "睡": "ㄕㄨㄟˋ", "覺": "ㄐㄧㄠˋ", "洗": "ㄒㄧˇ", "澡": "ㄗㄠˇ", "寫": "ㄒㄧㄝˇ", "字": "ㄗˋ", "草": "ㄘㄠˇ", "地": "ㄉㄧˋ", "踢": "ㄊㄧ", "球": "ㄑㄧㄡˊ", "有": "ㄧㄡˇ", "不": "ㄅㄨˋ", "是": "ㄕˋ", "而": "ㄦˊ", "雖": "ㄙㄨㄟ", "然": "ㄖㄢˊ", "但": "ㄉㄢˋ", "因": "ㄧㄣ", "為": "ㄨㄟˋ", "所": "ㄙㄨㄛˇ", "以": "ㄧˇ", "太": "ㄞˋ", "陽": "ㄧㄤˊ", "出": "ㄔㄨ", "來": "ㄌㄞˊ", "了": "ㄌㄜ˙", "天": "ㄊㄧㄢ", "氣": "ㄑㄧˋ", "變": "ㄅㄧㄢˋ", "熱": "ㄖㄜˋ", "只": "ㄓˇ", "要": "ㄧㄠˋ", "就": "ㄐㄧㄡˋ", "僅": "ㄐㄧㄣˇ", "且": "ㄑㄧㄝˇ", "如": "ㄖㄨˊ", "果": "ㄍㄨㄛˇ", "意": "ㄧˋ", "思": "ㄙ", "最": "ㄗㄨㄟˋ", "清": "ㄑㄧㄥ", "楚": "ㄔㄨˇ", "大": "ㄉㄚˋ", "樹": "ㄕㄨˋ", "鳥": "ㄋㄧㄠˇ", "家": "ㄐㄧㄚ", "非": "ㄈㄟ", "常": "ㄔㄤˊ", "這": "ㄓㄜˋ", "朵": "ㄉㄨㄛˇ", "花": "ㄏㄨㄚ", "漂": "ㄆㄧㄠˋ", "我": "ㄨㄛˇ", "先": "ㄒㄧㄢ", "手": "ㄕㄡˇ", "吃": "ㄔ", "飯": "ㄈㄢˋ", "再": "ㄗㄞˋ", "都": "ㄉㄡ", "白": "ㄅㄞˊ", "雲": "ㄩㄣˊ", "好": "ㄏㄠˇ", "愛": "ㄞˋ", "綿": "ㄇㄧㄢˊ", "羊": "ㄧㄤˊ", "媽": "ㄇㄚ", "正": "ㄓㄥˋ", "看": "ㄎㄢˋ", "書": "ㄕㄨ",
+    "部": "ㄅㄨˋ", "首": "ㄕㄡˇ", "空": "ㄎㄨㄥ", "穴": "ㄒㄩㄝˋ", "工": "ㄍㄨㄥ", "雨": "ㄩˇ", "水": "ㄕㄨㄟˇ", "蟲": "ㄔㄨㄥˊ", "中": "ㄓㄨㄥ", "皿": "ㄇㄧㄣˇ", "聽": "ㄊㄧㄥ", "耳": "ㄦˇ", "斤": "ㄐㄧㄣ", "心": "ㄒㄧㄣ", "新": "ㄒㄧㄣ", "立": "ㄌㄧˋ", "辛": "ㄒㄧㄣ", "樂": "ㄩㄝˋ", "過": "ㄍㄨㄛˋ", "放": "ㄈㄤˋ", "歡": "ㄏㄨㄢ", "夢": "ㄇㄥˋ", "夕": "ㄒㄧˋ", "林": "ㄌㄧㄣˊ", "目": "ㄇㄨˋ", "黑": "ㄏㄟ", "里": "ㄌㄧˇ", "雙": "ㄕㄨㄤ", "魚": "ㄩˊ", "國": "ㄍㄨㄛˊ", "認": "ㄖㄣˋ", "風": "ㄈㄥ", "情": "ㄑㄧㄥˊ", "學": "ㄒㄩㄝˊ", "謝": "ㄒㄧㄝˋ", "燈": "ㄉㄥ", "慢": "ㄇㄢˋ", "總": "ㄗㄨㄥˇ", "共": "ㄍㄨㄥˋ", "幾": "ㄐㄧˇ", "畫": "ㄏㄨㄚˋ", "你": "ㄋㄧˇ", "門": "ㄇㄣˊ", "春": "ㄔㄨㄣ", "馬": "ㄇㄚˇ", "問": "ㄨㄣˋ", "進": "ㄐㄧㄣˋ", "喜": "ㄒㄧˇ", "道": "ㄉㄠˋ", "說": "ㄕㄨㄛ", "語": "ㄩˇ", "確": "ㄑㄩㄝˋ", "音": "ㄧㄣ", "什": "ㄕㄜˊ", "麼": "ㄇㄜ˙", "隻": "ㄓ", "衣": "ㄧ", "服": "ㄈㄨˊ", "件": "ㄐㄧㄢˋ", "本": "ㄅㄣˇ", "條": "ㄊㄧㄠˊ", "二": "ㄦˋ", "三": "ㄙㄢ", "四": "ㄙˋ", "五": "ㄨˇ", "六": "ㄌㄧㄡˋ", "七": "ㄑㄧ", "八": "ㄅㄚ", "九": "ㄐㄧㄡˇ", "十": "ㄕˊ"
+  };
+
+  function addZhuyin(text, zhuyinColor = "#d81b60") {
+    if (!text) return "";
+    return text.toString().split('').map(char => {
+      if (zhuyinMap[char]) {
+        return `${char}<small style="font-size: 0.7em; color: ${zhuyinColor}; vertical-align: middle; margin-left: 2px; font-weight: bold;">(${zhuyinMap[char]})</small>`;
+      }
+      return char;
+    }).join('');
+  }
+
   // 超過 200 題的國語綜合題庫 (整合部首、筆畫、注音、量詞)
   const CHINESE_EXAM_BANK = [
     // --- 部首 (Radicals) ---
@@ -288,7 +304,7 @@
   function renderQuestion() {
     const data = examData[currentIdx];
     document.getElementById('progress-text').textContent = `第 ${currentIdx + 1} / ${examData.length} 題`;
-    document.getElementById('question-text').textContent = data.q;
+    document.getElementById('question-text').innerHTML = addZhuyin(data.q);
     const container = document.getElementById('options-container');
     container.innerHTML = '';
     document.getElementById('next-btn').style.visibility = 'hidden';
@@ -296,13 +312,15 @@
     data.opts.forEach(opt => {
       const btn = document.createElement('button');
       btn.className = 'option-btn';
-      btn.textContent = opt;
+      btn.innerHTML = addZhuyin(opt);
+      btn.dataset.value = opt; // 儲存原始值
       btn.onclick = () => {
         if (document.getElementById('next-btn').style.visibility === 'visible') return;
         if (!examStats[data.q]) examStats[data.q] = { correct: 0, wrong: 0 };
         
         if (opt.toString() === data.a.toString()) {
           btn.classList.add('correct');
+          btn.innerHTML = addZhuyin(opt, "#2e7d32");
           streakCounter++;
           score++;
           examStats[data.q].correct++;
@@ -311,7 +329,10 @@
           streakCounter = 0;
           btn.classList.add('wrong');
           Array.from(container.children).forEach(b => {
-            if(b.textContent === data.a.toString()) b.classList.add('correct');
+            if(b.dataset.value.toString() === data.a.toString()) {
+              b.classList.add('correct');
+              b.innerHTML = addZhuyin(data.a, "#2e7d32");
+            }
           });
           examStats[data.q].wrong++;
         }
