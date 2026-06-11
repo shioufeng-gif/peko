@@ -96,8 +96,22 @@
   let score = 0;
   let startTime, timerInterval;
   let streakCounter = 0;
+  let missedQuestions = [];
   let restReminderShown = false;
   let examStats = JSON.parse(localStorage.getItem('examStats')) || {};
+
+  // 語音功能
+  function speakEncouragement(text) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = (text === 'good job') ? 'en-US' : 'zh-TW';
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function speakReview(text) {
+    const utterance = new SpeechSynthesisUtterance("正確答案是 " + text);
+    utterance.lang = 'zh-TW';
+    window.speechSynthesis.speak(utterance);
+  }
 
   // 注音對照表 (涵蓋大考題庫常用字)
   const zhuyinMap = {
@@ -231,11 +245,29 @@
 
   function startExam(diff) {
     streakCounter = 0;
+    missedQuestions = [];
     restReminderShown = false;
     examData = generateExamData(currentSubject, diff);
     document.getElementById('portal-ui').style.display = 'none';
     document.getElementById('quiz-ui').style.display = 'block';
     currentIdx = 0; score = 0;
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);
+    renderQuestion();
+  }
+
+  // 新增：重新練習錯題邏輯
+  function retryMissed() {
+    examData = shuffle([...missedQuestions]); // 將錯題設為新的測驗題目
+    missedQuestions = []; // 清空，以便記錄下一輪的錯題
+    streakCounter = 0;
+    score = 0;
+    currentIdx = 0;
+    restReminderShown = false;
+
+    document.getElementById('result-ui').style.display = 'none';
+    document.getElementById('quiz-ui').style.display = 'block';
+    
     startTime = Date.now();
     timerInterval = setInterval(updateTimer, 1000);
     renderQuestion();
@@ -323,10 +355,13 @@
           btn.innerHTML = addZhuyin(opt, "#2e7d32");
           streakCounter++;
           score++;
+          if (score === 3) speakEncouragement("你很棒");
+          else if (score === 5) speakEncouragement("做的好");
           examStats[data.q].correct++;
           if (streakCounter > 0 && streakCounter % 3 === 0) showStreakAnimation();
         } else {
           streakCounter = 0;
+          missedQuestions.push(data); // 紀錄答錯的題目
           btn.classList.add('wrong');
           Array.from(container.children).forEach(b => {
             if(b.dataset.value.toString() === data.a.toString()) {
@@ -352,6 +387,7 @@
   function finishExam() {
     clearInterval(timerInterval);
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    if (score === examData.length && examData.length > 0) speakEncouragement("good job");
     document.getElementById('quiz-ui').style.display = 'none';
     document.getElementById('result-ui').style.display = 'block';
     
@@ -362,6 +398,23 @@
       <p>📈 正確率：<b style="color: ${accuracy >= 80 ? '#4caf50' : '#f44336'}">${accuracy}%</b></p>
       <p>⏱️ 總耗時：<b>${Math.floor(elapsed/60)}分${elapsed%60}秒</b></p>
     `;
+
+    // 顯示錯題回顧區塊
+    if (missedQuestions.length > 0) {
+      let reviewHtml = `<div style="margin-top:20px; border-top:2px solid #ddd; padding-top:15px;">`;
+      // 加入錯題特訓按鈕
+      reviewHtml += `<button class="btn btn-primary" onclick="retryMissed()" style="background-color: #f44336; margin-bottom: 20px; box-shadow: 0 6px 0 #b71c1c;">🎯 挑戰錯題特訓 (${missedQuestions.length}題)</button>`;
+      reviewHtml += `<h3 style="color:#f44336;"><i class="fas fa-graduation-cap"></i> 錯題小老師</h3>`;
+      missedQuestions.forEach((item, index) => {
+        reviewHtml += `<div style="background:white; padding:10px; border-radius:10px; margin-bottom:10px; border:1px solid #ffcdd2; display:flex; justify-content:space-between; align-items:center;">
+          <div style="text-align:left;"><b>問：</b>${item.q}<br><b style="color:#2e7d32;">答：</b>${item.a}</div>
+          <button onclick="speakReview('${item.a}')" style="background:#f3e5f5; border:none; color:#673ab7; padding:10px; border-radius:50%; cursor:pointer;"><i class="fas fa-volume-up"></i></button>
+        </div>`;
+      });
+      reviewHtml += `</div>`;
+      document.getElementById('result-summary').innerHTML += reviewHtml;
+    }
+
     renderStatsTable();
   }
 
