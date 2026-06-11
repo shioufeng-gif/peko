@@ -19,6 +19,28 @@
   .btn-primary { background-color: #ff9800; }
   .btn-secondary { background-color: #9e9e9e; }
   .btn-home { background-color: #00bcd4; margin-top: 10px; }
+  /* 連續答對動畫樣式 */
+  .streak-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 2000;
+    pointer-events: none;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: center;
+    opacity: 0;
+  }
+  .streak-overlay.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  .streak-pikmin { font-size: 5rem; display: block; margin-bottom: 10px; animation: bounce 0.8s infinite; }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
   .feedback { padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
   .feedback.show-correct { display: block; background-color: #e8f5e9; color: #2e7d32; }
   .feedback.show-wrong { display: block; background-color: #ffebee; color: #c62828; }
@@ -60,6 +82,13 @@
   </div>
 </div>
 
+<!-- 連續答對 3 題的動畫彈窗 -->
+<div id="streak-animation" class="streak-overlay">
+  <div class="streak-pikmin"><i class="fas fa-seedling"></i></div>
+  <div style="font-size: 1.5rem; font-weight: bold; color: #00796b;">太棒了！<br>連續答對 3 題！</div>
+  <div style="font-size: 1.2rem; margin-top: 10px; color: #ff9800;">🌟 皮克敏為你加油 🌟</div>
+</div>
+
 <script>
   let data = [];
   // 生成 200 題數學 (加減法 1-100)
@@ -86,14 +115,50 @@
   let currentIdx = 0;
   let score = 0;
   let startTime, timerInterval;
+  let streakCounter = 0;
+  let missedQuestions = [];
   let restReminderShown = false;
   let userStats = JSON.parse(localStorage.getItem('mathStats')) || {};
+  function saveStats() { localStorage.setItem('mathStats', JSON.stringify(userStats)); }
+
+  function speakEncouragement(text) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = text === 'good job' ? 'en-US' : 'zh-TW';
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function showStreakAnimation() {
+    const anim = document.getElementById('streak-animation');
+    const pikminIcon = anim.querySelector('.streak-pikmin i');
+    const colors = ['#ff5252', '#448aff', '#ffd740', '#9c27b0', '#4caf50'];
+    pikminIcon.style.color = colors[Math.floor(Math.random() * colors.length)];
+    anim.classList.add('show');
+    setTimeout(() => {
+      anim.classList.remove('show');
+    }, 2000);
+  }
 
   function initQuiz(difficulty) {
     document.getElementById('portal-ui').style.display = 'none';
     document.getElementById('quiz-ui').style.display = 'block';
     restReminderShown = false;
+    streakCounter = 0;
+    missedQuestions = [];
     quizData = generateData(difficulty);
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);
+    loadQuestion();
+  }
+
+  function retryMissed() {
+    quizData = [...missedQuestions].sort(() => Math.random() - 0.5);
+    missedQuestions = [];
+    streakCounter = 0;
+    score = 0;
+    currentIdx = 0;
+    restReminderShown = false;
+    document.getElementById('result-ui').style.display = 'none';
+    document.getElementById('quiz-ui').style.display = 'block';
     startTime = Date.now();
     timerInterval = setInterval(updateTimer, 1000);
     loadQuestion();
@@ -127,16 +192,27 @@
       btn.textContent = opt;
       btn.onclick = () => {
         if (document.getElementById('next-btn').style.visibility === 'visible') return;
+        if (!userStats[q[0]]) userStats[q[0]] = { correct: 0, wrong: 0 };
+
         if (opt === q[1]) {
           btn.classList.add('correct');
+          streakCounter++;
           score++;
+          userStats[q[0]].correct++;
           document.getElementById('feedback-box').textContent = "⭕ 答對了！你好棒！";
           document.getElementById('feedback-box').className = "feedback show-correct";
+          if (score === 3) speakEncouragement("你很棒");
+          else if (score === 5) speakEncouragement("做的好");
+          if (streakCounter > 0 && streakCounter % 3 === 0) showStreakAnimation();
         } else {
+          streakCounter = 0;
+          missedQuestions.push(q);
           btn.classList.add('wrong');
+          userStats[q[0]].wrong++;
           document.getElementById('feedback-box').textContent = `❌ 答錯了，答案是 ${q[1]}`;
           document.getElementById('feedback-box').className = "feedback show-wrong";
         }
+        saveStats();
         document.getElementById('next-btn').style.visibility = 'visible';
       };
       container.appendChild(btn);
@@ -148,6 +224,7 @@
     if (currentIdx < quizData.length) loadQuestion();
     else {
       clearInterval(timerInterval);
+      if (score === quizData.length && quizData.length > 0) speakEncouragement("good job");
       let elapsed = Math.floor((Date.now() - startTime) / 1000);
       document.getElementById('quiz-ui').style.display = 'none';
       document.getElementById('result-ui').style.display = 'block';
