@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fff8e8">
+<title>大樂透歡樂猜獎遊戲</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #3c3328;
+    --muted: #81786d;
+    --orange: #f28a27;
+    --orange-dark: #ce6814;
+    --cream: #fff8e8;
+    --green: #438567;
+  }
+  * { box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    margin: 0;
+    padding: 34px 18px 50px;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 10% 12%, rgba(255, 209, 121, .35), transparent 23rem),
+      radial-gradient(circle at 92% 88%, rgba(137, 207, 174, .25), transparent 25rem),
+      var(--cream);
+    font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+  }
+  button, input, textarea { font: inherit; }
+  .page { width: min(1040px, 100%); margin: 0 auto; }
+  .top-link {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    color: var(--green);
+    font-weight: 750;
+    text-decoration: none;
+  }
+  .top-link:hover { text-decoration: underline; }
+  .hero {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 27px 0 22px;
+  }
+  h1 { margin: 0 0 7px; color: #a75012; font-size: clamp(1.8rem, 5vw, 2.7rem); }
+  .hero p { margin: 0; color: var(--muted); font-size: 1.05rem; line-height: 1.7; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(300px, .95fr); gap: 20px; align-items: start; }
+  .card {
+    padding: clamp(20px, 4vw, 30px);
+    border: 1px solid rgba(130, 102, 66, .1);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, .94);
+    box-shadow: 0 12px 35px rgba(107, 78, 39, .09);
+  }
+  .card h2 { margin: 0 0 7px; font-size: 1.35rem; }
+  .card-intro { margin: 0 0 20px; color: var(--muted); line-height: 1.6; }
+  .settings {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  label { display: block; font-size: .92rem; font-weight: 750; }
+  input[type="number"] {
+    display: block;
+    width: 100%;
+    margin-top: 7px;
+    padding: 11px 12px;
+    border: 1px solid #e5d9c6;
+    border-radius: 12px;
+    background: #fffdf9;
+    color: var(--ink);
+  }
+  textarea {
+    display: block;
+    width: 100%;
+    min-height: 205px;
+    resize: vertical;
+    margin-top: 8px;
+    padding: 13px;
+    border: 1px solid #e5d9c6;
+    border-radius: 14px;
+    background: #fffdf9;
+    color: var(--ink);
+    font: .95rem/1.7 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  input:focus, textarea:focus { outline: 3px solid rgba(242, 138, 39, .2); border-color: var(--orange); }
+  .help { margin: 8px 0 0; color: var(--muted); font-size: .88rem; line-height: 1.55; }
+  .button-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 17px; }
+  .button {
+    min-height: 46px;
+    padding: 11px 17px;
+    border: 0;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 800;
+    transition: transform .15s, filter .15s;
+  }
+  .button:hover { transform: translateY(-2px); filter: brightness(1.03); }
+  .button-primary { flex: 1; background: var(--orange); color: white; box-shadow: 0 4px 0 var(--orange-dark); }
+  .button-secondary { background: #eef5ee; color: #397254; }
+  .message {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    line-height: 1.55;
+  }
+  .message.error { display: block; background: #fff0ed; color: #a33d2d; }
+  .result-placeholder { display: grid; min-height: 315px; place-items: center; text-align: center; color: var(--muted); }
+  .result-placeholder[hidden] { display: none; }
+  .placeholder-icon { display: block; margin-bottom: 10px; font-size: 3.5rem; }
+  .result-content[hidden] { display: none; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 17px 0;
+  }
+  .stat {
+    padding: 13px;
+    border-radius: 14px;
+    background: #fff8ec;
+  }
+  .stat span { display: block; margin-bottom: 4px; color: var(--muted); font-size: .82rem; }
+  .stat strong { font-size: 1.12rem; }
+  .result-heading { margin: 23px 0 12px; font-size: 1.05rem; }
+  .balls { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ball {
+    display: grid;
+    width: 41px;
+    height: 41px;
+    place-items: center;
+    border: 2px solid #f2cf98;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #fff8e6, #ffd68c);
+    color: #75420c;
+    font-weight: 850;
+  }
+  .groups { display: grid; gap: 13px; }
+  .group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid #f3e7d4;
+    border-radius: 15px;
+    background: #fffdfa;
+  }
+  .group-label { flex: 0 0 auto; color: var(--muted); font-size: .9rem; font-weight: 750; }
+  .group .balls { justify-content: flex-end; gap: 6px; }
+  .group .ball { width: 35px; height: 35px; font-size: .9rem; }
+  .disclaimer { margin: 22px 0 0; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+  @media (max-width: 740px) {
+    body { padding-top: 22px; }
+    .layout { grid-template-columns: 1fr; }
+    .result-placeholder { min-height: 180px; }
+  }
+  @media (max-width: 420px) {
+    .group { align-items: flex-start; flex-direction: column; }
+    .group .balls { justify-content: flex-start; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <a class="top-link" href="index.html"><span aria-hidden="true">←</span> 返回主選單</a>
+  <header class="hero">
+    <div>
+      <h1>大樂透歡樂猜獎遊戲</h1>
+      <p>用歷史次數、中位數篩選，再隨機組合出你專屬的參考號碼。</p>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="card" aria-labelledby="settings-title">
+      <h2 id="settings-title">設定你的號碼池</h2>
+      <p class="card-intro">貼上每期開獎號碼（一行一期），或先載入隨機模擬資料試玩。</p>
+      <div class="settings">
+        <label for="total-numbers">號碼總數
+          <input id="total-numbers" type="number" min="2" max="200" value="49">
+        </label>
+        <label for="pick-count">每組選取數
+          <input id="pick-count" type="number" min="1" max="200" value="6">
+        </label>
+        <label for="num-groups">產生組數
+          <input id="num-groups" type="number" min="1" max="20" value="5">
+        </label>
+        <label for="trim-percent">兩端剔除比例
+          <input id="trim-percent" type="number" min="0" max="49" value="15">
+        </label>
+      </div>
+      <label for="history-data">歷史開獎資料</label>
+      <textarea id="history-data" spellcheck="false" aria-describedby="history-help">3, 8, 14, 22, 31, 45
+1, 9, 17, 24, 36, 48
+5, 12, 19, 27, 33, 41
+2, 11, 18, 29, 38, 46
+7, 13, 21, 26, 35, 49
+4, 10, 16, 25, 37, 43
+6, 15, 20, 28, 34, 47
+3, 12, 23, 30, 39, 44
+8, 14, 19, 32, 40, 46
+1, 11, 22, 27, 36, 42
+5, 16, 24, 31, 38, 49
+2, 9, 18, 29, 33, 45
+7, 13, 20, 25, 34, 41
+4, 10, 21, 28, 37, 48
+6, 15, 17, 30, 39, 43</textarea>
+      <p class="help" id="history-help">可用逗號、空格或頓號分隔；超出號碼範圍的數字會略過。比例以百分比輸入，例如 15 代表兩端各剔除 15%。</p>
+      <div class="button-row">
+        <button class="button button-secondary" id="sample-button" type="button">🎲 載入 1000 期模擬資料</button>
+        <button class="button button-primary" id="generate-button" type="button">✨ 產生建議號碼</button>
+      </div>
+      <div class="message" id="message" role="alert"></div>
+    </section>
+
+    <section class="card" aria-labelledby="results-title" aria-live="polite">
+      <h2 id="results-title">篩選與推薦結果</h2>
+      <p class="card-intro">結果會依目前填入的歷史資料即時重新計算。</p>
+      <div class="result-placeholder" id="result-placeholder">
+        <div><span class="placeholder-icon" aria-hidden="true">🎯</span>設定完成後，點擊「產生建議號碼」</div>
+      </div>
+      <div class="result-content" id="result-content" hidden>
+        <div class="stats" id="stats"></div>
+        <h3 class="result-heading">中位數候選號碼池</h3>
+        <div class="balls" id="candidates"></div>
+        <h3 class="result-heading">隨機推薦組合</h3>
+        <div class="groups" id="groups"></div>
+        <p class="disclaimer">這些號碼只是依歷史頻率產生的隨機參考，不代表能預測未來開獎或提高中獎機率。請理性娛樂。</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  const historyInput = document.getElementById('history-data');
+  const message = document.getElementById('message');
+
+  function readInteger(id, label, minimum, maximum) {
+    const input = document.getElementById(id);
+    const value = Number(input.value);
+    if (!Number.isInteger(value) || value < minimum || value > maximum) {
+      throw new Error(`${label}請輸入 ${minimum} 到 ${maximum} 之間的整數。`);
+    }
+    return value;
+  }
+
+  function parseHistory(text, totalNumbers) {
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    if (lines.length === 0) throw new Error('請輸入至少一期歷史開獎資料。');
+
+    return lines.map((line, index) => {
+      const tokens = line.split(/[,\s，、]+/).filter(Boolean);
+      const numbers = tokens.map(token => {
+        if (!/^\d+$/.test(token)) {
+          throw new Error(`第 ${index + 1} 期含有無效內容「${token}」，請只輸入整數。`);
+        }
+        return Number(token);
+      }).filter(number => number >= 1 && number <= totalNumbers);
+      if (numbers.length === 0) {
+        throw new Error(`第 ${index + 1} 期沒有可用號碼，請檢查號碼範圍。`);
+      }
+      return numbers;
+    });
+  }
+
+  function median(values) {
+    const sorted = [...values].sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+  }
+
+  function sampleWithoutReplacement(values, count) {
+    const pool = [...values];
+    for (let index = pool.length - 1; index > 0; index--) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [pool[index], pool[swapIndex]] = [pool[swapIndex], pool[index]];
+    }
+    return pool.slice(0, count).sort((a, b) => a - b);
+  }
+
+  function generateRecommendations() {
+    message.className = 'message';
+    message.textContent = '';
+    try {
+      const totalNumbers = readInteger('total-numbers', '號碼總數', 2, 200);
+      const pickCount = readInteger('pick-count', '每組選取數', 1, totalNumbers);
+      const numGroups = readInteger('num-groups', '產生組數', 1, 20);
+      const trimPercentInput = readInteger('trim-percent', '剔除比例', 0, 49);
+      const trimPercent = trimPercentInput / 100;
+      const history = parseHistory(historyInput.value, totalNumbers);
+
+      const counts = Array.from({ length: totalNumbers }, () => 0);
+      history.flat().forEach(number => { counts[number - 1] += 1; });
+      const sortedByFrequency = counts
+        .map((frequency, index) => ({ number: index + 1, frequency }))
+        .sort((a, b) => a.frequency - b.frequency || a.number - b.number);
+      const trimSize = Math.floor(totalNumbers * trimPercent);
+      const validPool = sortedByFrequency.slice(trimSize, totalNumbers - trimSize);
+      const medianFrequency = median(validPool.map(item => item.frequency));
+      const medianSorted = [...validPool].sort(
+        (a, b) => Math.abs(a.frequency - medianFrequency) - Math.abs(b.frequency - medianFrequency)
+          || a.number - b.number
+      );
+      const candidateSize = Math.max(pickCount * 2, Math.floor(medianSorted.length * 0.6));
+      const candidates = medianSorted.slice(0, candidateSize).map(item => item.number);
+      if (candidates.length < pickCount) {
+        throw new Error(`目前候選池只有 ${candidates.length} 個號碼，無法組成每組 ${pickCount} 個號碼；請降低剔除比例或每組選取數。`);
+      }
+
+      const groups = Array.from({ length: numGroups }, () => sampleWithoutReplacement(candidates, pickCount));
+      renderResults({
+        historyCount: history.length,
+        totalNumbers,
+        trimSize,
+        validCount: validPool.length,
+        medianFrequency,
+        candidates,
+        groups
+      });
+    } catch (error) {
+      document.getElementById('result-placeholder').hidden = false;
+      document.getElementById('result-content').hidden = true;
+      message.className = 'message error';
+      message.textContent = error.message;
+    }
+  }
+
+  function renderBalls(container, numbers) {
+    container.replaceChildren(...numbers.map(number => {
+      const ball = document.createElement('span');
+      ball.className = 'ball';
+      ball.textContent = String(number).padStart(2, '0');
+      return ball;
+    }));
+  }
+
+  function renderResults(result) {
+    const stats = [
+      ['歷史資料', `${result.historyCount} 期`],
+      ['號碼範圍', `1–${result.totalNumbers}`],
+      ['兩端剔除', `各 ${result.trimSize} 個`],
+      ['有效號碼', `${result.validCount} 個`],
+      ['開獎次數中位數', `${result.medianFrequency.toFixed(1)} 次`]
+    ];
+    document.getElementById('stats').replaceChildren(...stats.map(([label, value]) => {
+      const item = document.createElement('div');
+      item.className = 'stat';
+      const title = document.createElement('span');
+      title.textContent = label;
+      const content = document.createElement('strong');
+      content.textContent = value;
+      item.append(title, content);
+      return item;
+    }));
+    renderBalls(document.getElementById('candidates'), [...result.candidates].sort((a, b) => a - b));
+
+    document.getElementById('groups').replaceChildren(...result.groups.map((numbers, index) => {
+      const row = document.createElement('div');
+      row.className = 'group';
+      const label = document.createElement('span');
+      label.className = 'group-label';
+      label.textContent = `第 ${index + 1} 組`;
+      const balls = document.createElement('div');
+      balls.className = 'balls';
+      renderBalls(balls, numbers);
+      row.append(label, balls);
+      return row;
+    }));
+    document.getElementById('result-placeholder').hidden = true;
+    document.getElementById('result-content').hidden = false;
+  }
+
+  function loadSampleHistory() {
+    try {
+      const totalNumbers = readInteger('total-numbers', '號碼總數', 2, 200);
+      const pickCount = readInteger('pick-count', '每組選取數', 1, totalNumbers);
+      const draws = Array.from({ length: 1000 }, () => sampleWithoutReplacement(
+        Array.from({ length: totalNumbers }, (_, index) => index + 1),
+        pickCount
+      ));
+      historyInput.value = draws.map(draw => draw.join(', ')).join('\n');
+      message.className = 'message';
+      message.textContent = '';
+      generateRecommendations();
+    } catch (error) {
+      message.className = 'message error';
+      message.textContent = error.message;
+    }
+  }
+
+  document.getElementById('generate-button').addEventListener('click', generateRecommendations);
+  document.getElementById('sample-button').addEventListener('click', loadSampleHistory);
+  generateRecommendations();
+</script>
+</body>
+</html>
