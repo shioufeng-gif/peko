@@ -17,6 +17,8 @@
   .option-btn.wrong { background-color: #ffcdd2 !important; border-color: #f44336; }
   .info-bar { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; color: #5e35b1; font-size: 1.1rem; }
   .btn { color: white; border: none; padding: 15px 25px; font-size: 1.2rem; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+  .btn-grade { background-color: #7e57c2; margin: 5px; min-width: 115px; }
+  .btn-grade.active { background-color: #ff9800; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
   .btn-subject { background-color: #673ab7; margin: 5px; width: 120px; }
   .btn-subject.active { background-color: #ff9800; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
   .btn-primary { background-color: #ff9800; width: 100%; margin-top: 15px; }
@@ -44,20 +46,25 @@
 </head>
 <body>
 <div class="quiz-container">
-  <h1 id="main-title">🏆 期中末全方位大考 🏆</h1>
+  <h1 id="main-title">🏆 國小一年級期中期末大考 🏆</h1>
   
   <div id="portal-ui">
     <div class="setup-section">
-      <p style="font-weight: bold; font-size: 1.3rem;">1. 選擇考試科目</p>
+      <p style="font-weight: bold; font-size: 1.3rem;">1. 選擇年級</p>
+      <button class="btn btn-grade active" id="grade-1" onclick="setGrade(1)">國小一年級</button>
+      <button class="btn btn-grade" id="grade-2" onclick="setGrade(2)">國小二年級</button>
+      <button class="btn btn-grade" id="grade-3" onclick="setGrade(3)">國小三年級</button>
+
+      <p style="font-weight: bold; font-size: 1.3rem; margin-top: 20px;">2. 選擇考試科目</p>
       <button class="btn btn-subject active" id="btn-zh" onclick="setSubject('ZH')">國語</button>
       <button class="btn btn-subject" id="btn-math" onclick="setSubject('MATH')">數學</button>
       
-      <p style="font-weight: bold; font-size: 1.3rem; margin-top: 20px;">2. 選擇難度級別</p>
+      <p style="font-weight: bold; font-size: 1.3rem; margin-top: 20px;">3. 選擇測驗題數</p>
       <button class="btn btn-primary" onclick="startExam('easy')" style="background-color: #4caf50;">🟢 基礎練習 (10題)</button>
       <button class="btn btn-primary" onclick="startExam('medium')" style="background-color: #ff9800;">🟡 進階挑戰 (20題)</button>
       <button class="btn btn-primary" onclick="startExam('hard')" style="background-color: #f44336;">🔴 模擬大考 (40題)</button>
     </div>
-    <button class="btn btn-home" onclick="location.href='index.html'">🏠 返回學習大廳</button>
+    <button class="btn btn-home" onclick="location.href='learning.html'">🏠 返回學習大廳</button>
   </div>
 
   <div id="quiz-ui" style="display:none">
@@ -68,7 +75,7 @@
     <div class="question-box" id="question-text"></div>
     <div class="options-grid" id="options-container"></div>
     <div style="display: flex; gap: 10px;">
-      <button class="btn btn-home" onclick="location.href='index.html'" style="flex: 1;">🏠 放棄</button>
+      <button class="btn btn-home" onclick="location.href='learning.html'" style="flex: 1;">🏠 放棄</button>
       <button class="btn btn-primary" id="next-btn" style="visibility:hidden; flex: 2;" onclick="loadNext()">下一題 ➔</button>
     </div>
   </div>
@@ -77,7 +84,7 @@
     <h2>📊 考試成績單</h2>
     <div class="stats-card" id="result-summary"></div>
     <button class="btn btn-primary" onclick="location.reload()">再考一次</button>
-    <button class="btn btn-home" onclick="location.href='index.html'">返回大廳</button>
+    <button class="btn btn-home" onclick="location.href='learning.html'">返回大廳</button>
     <div id="stats-container" style="max-height: 250px; overflow-y: auto; margin-top: 20px;"></div>
   </div>
 </div>
@@ -86,10 +93,11 @@
 <div id="streak-animation" class="streak-overlay">
   <div class="streak-pikmin"><i class="fas fa-seedling"></i></div>
   <div style="font-size: 1.5rem; font-weight: bold; color: #00796b;">太棒了！<br>連續答對 3 題！</div>
-  <div style="font-size: 1.2rem; margin-top: 10px; color: #673ab7;">🌟 皮克敏為你加油 🌟</div>
+  <div style="font-size: 1.2rem; margin-top: 10px; color: #673ab7;">🌟 你真棒，繼續加油！ 🌟</div>
 </div>
 
 <script>
+  let selectedGrade = 1;
   let currentSubject = 'ZH';
   let examData = [];
   let currentIdx = 0;
@@ -243,11 +251,19 @@
     document.getElementById('btn-math').classList.toggle('active', s === 'MATH');
   }
 
+  function setGrade(grade) {
+    selectedGrade = grade;
+    document.querySelectorAll('.btn-grade').forEach(button => {
+      button.classList.toggle('active', button.id === `grade-${grade}`);
+    });
+    document.getElementById('main-title').textContent = `🏆 國小${['', '一年級', '二年級', '三年級'][grade]}期中期末大考 🏆`;
+  }
+
   function startExam(diff) {
     streakCounter = 0;
     missedQuestions = [];
     restReminderShown = false;
-    examData = generateExamData(currentSubject, diff);
+    examData = generateExamData(currentSubject, diff, selectedGrade);
     document.getElementById('portal-ui').style.display = 'none';
     document.getElementById('quiz-ui').style.display = 'block';
     currentIdx = 0; score = 0;
@@ -294,41 +310,75 @@
     }
   }
 
-  function generateExamData(sub, diff) {
-    let pool = [];
+  function generateExamData(sub, diff, grade) {
     const count = diff === 'easy' ? 10 : diff === 'medium' ? 20 : 40;
     
     if (sub === 'MATH') {
-      const range = diff === 'easy' ? 10 : diff === 'medium' ? 20 : 100;
-      let expressions = new Set();
-      while(pool.length < 250) {
-        let a = Math.floor(Math.random() * range) + 1;
-        let b = Math.floor(Math.random() * range) + 1;
-        let op = Math.random() > 0.5 ? '+' : '-';
-        if (op === '-' && a < b) [a, b] = [b, a];
-        
-        let expr = `${a} ${op} ${b}`;
-        if (!expressions.has(expr)) {
-            expressions.add(expr);
-            let ans = op === '+' ? a + b : a - b;
-            
-            let optionsSet = new Set([ans.toString()]);
-            while (optionsSet.size < 4) {
-                let offset = Math.floor(Math.random() * 9) - 4; // -4 to 4
-                let fake = ans + offset;
-                if (fake >= 0 && fake !== ans) optionsSet.add(fake.toString());
-            }
-            pool.push({ q: `${expr} = ?`, a: ans.toString(), opts: shuffle(Array.from(optionsSet)) });
+      const pool = [];
+      const expressions = new Set();
+      const rangeByGrade = {
+        1: { easy: 10, medium: 20, hard: 20 },
+        2: { easy: 20, medium: 100, hard: 100 },
+        3: { easy: 100, medium: 500, hard: 1000 }
+      };
+      const range = rangeByGrade[grade][diff];
+      const operationsByGrade = {
+        1: ['+', '-'],
+        2: ['+', '-', '×'],
+        3: ['+', '-', '×', '÷']
+      };
+      let attempts = 0;
+      while (pool.length < count && attempts < count * 100) {
+        attempts++;
+        const op = operationsByGrade[grade][Math.floor(Math.random() * operationsByGrade[grade].length)];
+        let a;
+        let b;
+        let answer;
+        if (op === '×') {
+          a = grade === 2 ? Math.floor(Math.random() * 9) + 1 : Math.floor(Math.random() * 90) + 10;
+          b = Math.floor(Math.random() * 9) + 1;
+          answer = a * b;
+        } else if (op === '÷') {
+          b = Math.floor(Math.random() * 11) + 2;
+          const quotient = Math.floor(Math.random() * 99) + 1;
+          a = b * quotient;
+          answer = quotient;
+        } else {
+          a = Math.floor(Math.random() * range) + 1;
+          b = Math.floor(Math.random() * range) + 1;
+          if (op === '-' && a < b) [a, b] = [b, a];
+          answer = op === '+' ? a + b : a - b;
         }
+        const expression = `${a} ${op} ${b}`;
+        if (expressions.has(expression)) continue;
+        expressions.add(expression);
+        const options = new Set([String(answer)]);
+        while (options.size < 4) {
+          const offset = Math.floor(Math.random() * 9) - 4;
+          const distractor = answer + offset;
+          if (distractor >= 0 && distractor !== answer) options.add(String(distractor));
+        }
+        pool.push({ q: `${expression} = ?`, a: String(answer), opts: shuffle([...options]) });
       }
+      return shuffle(pool).slice(0, count);
     } else {
-      // 確保國語題庫中的每個題目選項都經過隨機打亂
-      pool = CHINESE_EXAM_BANK.map(item => ({
+      const isBasicQuestion = item =>
+        /正確注音|一（|妹妹（|月亮（|下雨/.test(item.q)
+        || (/總共有幾畫/.test(item.q) && Number(item.a) <= 6);
+      const gradeBank = grade === 1
+        ? CHINESE_EXAM_BANK.filter(isBasicQuestion)
+        : grade === 2
+          ? CHINESE_EXAM_BANK.filter(item =>
+            isBasicQuestion(item)
+            || /部首是/.test(item.q)
+            || (/總共有幾畫/.test(item.q) && Number(item.a) <= 10))
+          : CHINESE_EXAM_BANK;
+      const pool = gradeBank.map(item => ({
         ...item,
         opts: shuffle([...item.opts])
       }));
+      return shuffle(pool).slice(0, Math.min(count, pool.length));
     }
-    return shuffle(pool).slice(0, Math.min(count, pool.length));
   }
 
   function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
@@ -393,6 +443,7 @@
     
     const accuracy = Math.round((score / examData.length) * 100);
     document.getElementById('result-summary').innerHTML = `
+      <p style="font-size: 1.2rem; color: #673ab7;">年級：<b>國小${['', '一年級', '二年級', '三年級'][selectedGrade]}</b></p>
       <p style="font-size: 1.5rem; color: #673ab7;">科目：<b>${currentSubject === 'ZH' ? '國語' : '數學'}</b></p>
       <p>🎯 答對題數：<b>${score} / ${examData.length}</b></p>
       <p>📈 正確率：<b style="color: ${accuracy >= 80 ? '#4caf50' : '#f44336'}">${accuracy}%</b></p>
