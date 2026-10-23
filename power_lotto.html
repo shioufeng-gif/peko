@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fff8e8">
+<title>威力彩歡樂預測</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #3c3328;
+    --muted: #81786d;
+    --purple: #7652a8;
+    --purple-dark: #57377f;
+    --cream: #faf7ff;
+    --green: #438567;
+  }
+  * { box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    margin: 0;
+    padding: 34px 18px 50px;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 10% 12%, rgba(218, 198, 255, .4), transparent 23rem),
+      radial-gradient(circle at 92% 88%, rgba(169, 222, 196, .28), transparent 25rem),
+      var(--cream);
+    font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+  }
+  button, textarea { font: inherit; }
+  .page { width: min(1040px, 100%); margin: 0 auto; }
+  .top-link { color: var(--green); font-weight: 750; text-decoration: none; }
+  .top-link:hover { text-decoration: underline; }
+  .game-switch {
+    display: inline-flex;
+    margin-left: 18px;
+    padding: 9px 13px;
+    border-radius: 999px;
+    background: #efe8fa;
+    color: #62438d;
+    font-size: .9rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+  .hero { margin: 27px 0 22px; }
+  h1 { margin: 0 0 7px; color: #62438d; font-size: clamp(1.8rem, 5vw, 2.7rem); }
+  .hero p { margin: 0; color: var(--muted); font-size: 1.05rem; line-height: 1.7; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(300px, .95fr); gap: 20px; align-items: start; }
+  .card {
+    padding: clamp(20px, 4vw, 30px);
+    border: 1px solid rgba(100, 73, 132, .1);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, .95);
+    box-shadow: 0 12px 35px rgba(80, 58, 109, .09);
+  }
+  .card h2 { margin: 0 0 7px; font-size: 1.35rem; }
+  .card-intro { margin: 0 0 20px; color: var(--muted); line-height: 1.6; }
+  label { display: block; font-size: .92rem; font-weight: 750; }
+  textarea {
+    display: block;
+    width: 100%;
+    min-height: 230px;
+    resize: vertical;
+    margin-top: 8px;
+    padding: 13px;
+    border: 1px solid #dfd4ee;
+    border-radius: 14px;
+    background: #fdfbff;
+    color: var(--ink);
+    font: .95rem/1.7 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  textarea:focus { outline: 3px solid rgba(118, 82, 168, .2); border-color: var(--purple); }
+  .help { margin: 8px 0 0; color: var(--muted); font-size: .88rem; line-height: 1.55; }
+  .button-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 17px; }
+  .button {
+    min-height: 46px;
+    padding: 11px 17px;
+    border: 0;
+    border-radius: 14px;
+    cursor: pointer;
+    font-weight: 800;
+    transition: transform .15s, filter .15s;
+  }
+  .button:hover { transform: translateY(-2px); filter: brightness(1.03); }
+  .button-primary { flex: 1; background: var(--purple); color: white; box-shadow: 0 4px 0 var(--purple-dark); }
+  .button-secondary { background: #eff6f0; color: #397254; }
+  .message { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 12px; line-height: 1.55; }
+  .message.error { display: block; background: #fff0ed; color: #a33d2d; }
+  .message.success { display: block; background: #f0eafa; color: #57377f; }
+  .result-placeholder { display: grid; min-height: 270px; place-items: center; text-align: center; color: var(--muted); }
+  .result-placeholder[hidden], .result-content[hidden] { display: none; }
+  .placeholder-icon { display: block; margin-bottom: 10px; font-size: 3.5rem; }
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 17px 0; }
+  .stat { padding: 13px; border-radius: 14px; background: #f6f1fc; }
+  .stat span { display: block; margin-bottom: 4px; color: var(--muted); font-size: .82rem; }
+  .stat strong { font-size: 1.08rem; }
+  .result-heading { margin: 23px 0 12px; font-size: 1.05rem; }
+  .zone-label { margin: 15px 0 7px; color: #65527d; font-size: .9rem; font-weight: 750; }
+  .balls { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ball {
+    display: grid;
+    width: 41px;
+    height: 41px;
+    place-items: center;
+    border: 2px solid #d7c5f0;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #fff, #e9dcfa);
+    color: #513277;
+    font-weight: 850;
+  }
+  .ball.second { border-color: #f2cf98; background: linear-gradient(145deg, #fff8e6, #ffd68c); color: #75420c; }
+  .groups { display: grid; gap: 13px; }
+  .group { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border: 1px solid #ece3f6; border-radius: 15px; background: #fff; }
+  .group-label { flex: 0 0 auto; color: var(--muted); font-size: .9rem; font-weight: 750; }
+  .group-numbers { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; }
+  .group .ball { width: 35px; height: 35px; font-size: .9rem; }
+  .plus { color: #9a8aab; font-weight: 800; }
+  .disclaimer { margin: 22px 0 0; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+  @media (max-width: 740px) {
+    body { padding-top: 22px; }
+    .layout { grid-template-columns: 1fr; }
+    .result-placeholder { min-height: 180px; }
+  }
+  @media (max-width: 420px) {
+    .group { align-items: flex-start; flex-direction: column; }
+    .group-numbers { justify-content: flex-start; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <a class="top-link" href="index.html">← 返回主選單</a>
+  <a class="game-switch" href="lotto.html">切換到大樂透 →</a>
+  <header class="hero">
+    <h1>威力彩歡樂預測</h1>
+    <p>第一區 1–38 選 6、第二區 1–8 選 1。依歷史次數與回測結果調整篩選比例。</p>
+  </header>
+
+  <div class="layout">
+    <section class="card" aria-labelledby="settings-title">
+      <h2 id="settings-title">輸入威力彩歷史資料</h2>
+      <p class="card-intro">每行填一期，先列第一區 6 個號碼，再用「|」分隔第二區號碼。</p>
+      <label for="history-data">歷史開獎資料</label>
+      <textarea id="history-data" spellcheck="false" aria-describedby="history-help">1, 5, 12, 18, 27, 36 | 3
+2, 8, 14, 21, 30, 38 | 7
+4, 9, 16, 23, 29, 34 | 2
+3, 11, 17, 25, 32, 37 | 6
+6, 10, 15, 22, 28, 35 | 1
+7, 13, 19, 24, 31, 33 | 8
+1, 9, 14, 20, 26, 38 | 4
+5, 12, 18, 23, 30, 36 | 5
+2, 10, 16, 21, 29, 37 | 3
+4, 8, 15, 25, 32, 34 | 7
+3, 11, 17, 22, 28, 35 | 2
+6, 13, 19, 24, 31, 38 | 6</textarea>
+      <p class="help" id="history-help">格式範例：01, 05, 12, 18, 27, 36 | 3。每期需有 6 個不重複的第一區號碼（1–38）及 1 個第二區號碼（1–8）。</p>
+      <div class="button-row">
+        <button class="button button-secondary" id="sample-button" type="button">🎲 載入模擬資料</button>
+        <button class="button button-primary" id="generate-button" type="button">✨ 優化並產生號碼</button>
+      </div>
+      <div class="message" id="message" role="alert"></div>
+    </section>
+
+    <section class="card" aria-labelledby="results-title" aria-live="polite">
+      <h2 id="results-title">回測與推薦結果</h2>
+      <p class="card-intro">系統會分別回測兩區的剔除比例，再依中位數候選池隨機選號。</p>
+      <div class="result-placeholder" id="result-placeholder">
+        <div><span class="placeholder-icon" aria-hidden="true">🌈</span>輸入資料後，開始產生威力彩參考號碼</div>
+      </div>
+      <div class="result-content" id="result-content" hidden>
+        <div class="stats" id="stats"></div>
+        <h3 class="result-heading">候選號碼池</h3>
+        <p class="zone-label">第一區（1–38）</p>
+        <div class="balls" id="main-candidates"></div>
+        <p class="zone-label">第二區（1–8）</p>
+        <div class="balls" id="bonus-candidates"></div>
+        <h3 class="result-heading">隨機推薦組合</h3>
+        <div class="groups" id="groups"></div>
+        <p class="disclaimer">回測只是比較過去資料中的篩選結果，可能受隨機波動與樣本數影響，不能預測未來開獎或提高中獎機率。請理性娛樂。</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  const historyInput = document.getElementById('history-data');
+  const message = document.getElementById('message');
+  const TRIM_OPTIONS = [0, 5, 10, 15, 20, 25];
+  const MAIN_PICK_COUNT = 6;
+  const MIN_BACKTEST_HISTORY = 6;
+
+  function parseDraws(text) {
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+    if (lines.length === 0) throw new Error('請輸入至少一期威力彩歷史資料。');
+    if (lines.length > 3000) throw new Error('最多可輸入 3,000 期資料，請分批進行。');
+
+    return lines.map((line, index) => {
+      const parts = line.split(/[|｜]/);
+      if (parts.length !== 2) throw new Error(`第 ${index + 1} 期格式錯誤，請用「|」分隔第一區與第二區。`);
+      const parseNumbers = part => {
+        const tokens = part.trim().split(/[,\s，、]+/).filter(Boolean);
+        if (tokens.some(token => !/^\d+$/.test(token))) {
+          throw new Error(`第 ${index + 1} 期含有無效內容，請只輸入整數。`);
+        }
+        return tokens.map(Number);
+      };
+      const main = parseNumbers(parts[0]);
+      const bonus = parseNumbers(parts[1]);
+      if (main.length !== MAIN_PICK_COUNT || new Set(main).size !== MAIN_PICK_COUNT
+        || main.some(number => number < 1 || number > 38)) {
+        throw new Error(`第 ${index + 1} 期第一區必須是 1–38 的 6 個不重複號碼。`);
+      }
+      if (bonus.length !== 1 || bonus[0] < 1 || bonus[0] > 8) {
+        throw new Error(`第 ${index + 1} 期第二區必須是 1–8 的 1 個號碼。`);
+      }
+      return { main, bonus: bonus[0] };
+    });
+  }
+
+  function median(values) {
+    const sorted = [...values].sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+  }
+
+  function createPool(draws, zone, totalNumbers, trimPercent, pickCount) {
+    const counts = Array.from({ length: totalNumbers }, () => 0);
+    draws.forEach(draw => {
+      const numbers = zone === 'main' ? draw.main : [draw.bonus];
+      numbers.forEach(number => { counts[number - 1] += 1; });
+    });
+    const sorted = counts
+      .map((frequency, index) => ({ number: index + 1, frequency }))
+      .sort((a, b) => a.frequency - b.frequency || a.number - b.number);
+    const trimSize = Math.floor(totalNumbers * trimPercent / 100);
+    const validPool = sorted.slice(trimSize, totalNumbers - trimSize);
+    const medianFrequency = median(validPool.map(item => item.frequency));
+    const ranked = [...validPool].sort(
+      (a, b) => Math.abs(a.frequency - medianFrequency) - Math.abs(b.frequency - medianFrequency)
+        || a.number - b.number
+    );
+    const candidateSize = Math.min(
+      validPool.length,
+      Math.max(
+        pickCount * 2,
+        Math.floor((totalNumbers - 2 * Math.floor(totalNumbers * 0.25)) * 0.6)
+      )
+    );
+    return {
+      candidates: ranked.slice(0, candidateSize).map(item => item.number),
+      validCount: validPool.length,
+      medianFrequency,
+      trimSize
+    };
+  }
+
+  function optimizeTrim(draws, zone, totalNumbers, pickCount) {
+    if (draws.length < MIN_BACKTEST_HISTORY) {
+      return { percent: 15, averageHits: null, evaluatedDraws: 0, optimized: false };
+    }
+    const firstTestIndex = Math.max(5, Math.floor(draws.length * 0.5));
+    const scores = TRIM_OPTIONS.map(percent => {
+      let totalHits = 0;
+      let evaluatedDraws = 0;
+      for (let index = firstTestIndex; index < draws.length; index++) {
+        const pool = createPool(draws.slice(0, index), zone, totalNumbers, percent, pickCount);
+        const actual = zone === 'main' ? draws[index].main : [draws[index].bonus];
+        totalHits += actual.filter(number => pool.candidates.includes(number)).length;
+        evaluatedDraws++;
+      }
+      return {
+        percent,
+        averageHits: totalHits / evaluatedDraws,
+        evaluatedDraws
+      };
+    });
+    scores.sort((a, b) => b.averageHits - a.averageHits || Math.abs(a.percent - 15) - Math.abs(b.percent - 15));
+    return { ...scores[0], optimized: true };
+  }
+
+  function sampleWithoutReplacement(values, count) {
+    const pool = [...values];
+    for (let index = pool.length - 1; index > 0; index--) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [pool[index], pool[swapIndex]] = [pool[swapIndex], pool[index]];
+    }
+    return pool.slice(0, count).sort((a, b) => a - b);
+  }
+
+  function renderBalls(container, numbers, secondZone = false) {
+    container.replaceChildren(...numbers.map(number => {
+      const ball = document.createElement('span');
+      ball.className = secondZone ? 'ball second' : 'ball';
+      ball.textContent = String(number).padStart(2, '0');
+      return ball;
+    }));
+  }
+
+  function renderResults(result) {
+    const stats = [
+      ['歷史資料', `${result.drawCount} 期`],
+      ['回測範圍', result.mainOptimization.optimized ? `${result.mainOptimization.evaluatedDraws} 期` : '資料不足，使用預設值'],
+      ['第一區剔除比例', `${result.mainOptimization.percent}%`],
+      ['第二區剔除比例', `${result.bonusOptimization.percent}%`],
+      ['第一區中位數', `${result.mainPool.medianFrequency.toFixed(1)} 次`],
+      ['第二區中位數', `${result.bonusPool.medianFrequency.toFixed(1)} 次`]
+    ];
+    document.getElementById('stats').replaceChildren(...stats.map(([label, value]) => {
+      const item = document.createElement('div');
+      item.className = 'stat';
+      const title = document.createElement('span');
+      title.textContent = label;
+      const content = document.createElement('strong');
+      content.textContent = value;
+      item.append(title, content);
+      return item;
+    }));
+    renderBalls(document.getElementById('main-candidates'), [...result.mainPool.candidates].sort((a, b) => a - b));
+    renderBalls(document.getElementById('bonus-candidates'), [...result.bonusPool.candidates].sort((a, b) => a - b), true);
+    document.getElementById('groups').replaceChildren(...result.groups.map((group, index) => {
+      const row = document.createElement('div');
+      row.className = 'group';
+      const label = document.createElement('span');
+      label.className = 'group-label';
+      label.textContent = `第 ${index + 1} 組`;
+      const numbers = document.createElement('div');
+      numbers.className = 'group-numbers';
+      const mainBalls = document.createElement('div');
+      mainBalls.className = 'balls';
+      renderBalls(mainBalls, group.main);
+      const plus = document.createElement('span');
+      plus.className = 'plus';
+      plus.textContent = '+';
+      const bonusBalls = document.createElement('div');
+      bonusBalls.className = 'balls';
+      renderBalls(bonusBalls, [group.bonus], true);
+      numbers.append(mainBalls, plus, bonusBalls);
+      row.append(label, numbers);
+      return row;
+    }));
+    document.getElementById('result-placeholder').hidden = true;
+    document.getElementById('result-content').hidden = false;
+  }
+
+  function generateRecommendations() {
+    message.className = 'message';
+    message.textContent = '';
+    try {
+      const draws = parseDraws(historyInput.value);
+      const mainOptimization = optimizeTrim(draws, 'main', 38, MAIN_PICK_COUNT);
+      const bonusOptimization = optimizeTrim(draws, 'bonus', 8, 1);
+      const mainPool = createPool(draws, 'main', 38, mainOptimization.percent, MAIN_PICK_COUNT);
+      const bonusPool = createPool(draws, 'bonus', 8, bonusOptimization.percent, 1);
+      const groups = Array.from({ length: 5 }, () => ({
+        main: sampleWithoutReplacement(mainPool.candidates, MAIN_PICK_COUNT),
+        bonus: sampleWithoutReplacement(bonusPool.candidates, 1)[0]
+      }));
+      renderResults({ drawCount: draws.length, mainOptimization, bonusOptimization, mainPool, bonusPool, groups });
+      if (!mainOptimization.optimized) {
+        message.className = 'message success';
+        message.textContent = `資料少於 ${MIN_BACKTEST_HISTORY} 期，暫用預設 15% 剔除比例；增加歷史期數可進行回測調整。`;
+      } else {
+        message.className = 'message success';
+        message.textContent = '已用歷史資料進行逐期回測，分別選出兩區平均候選命中數較高的剔除比例。';
+      }
+    } catch (error) {
+      document.getElementById('result-placeholder').hidden = false;
+      document.getElementById('result-content').hidden = true;
+      message.className = 'message error';
+      message.textContent = error.message;
+    }
+  }
+
+  function loadSampleHistory() {
+    const lines = Array.from({ length: 120 }, () => {
+      const main = sampleWithoutReplacement(Array.from({ length: 38 }, (_, index) => index + 1), MAIN_PICK_COUNT);
+      const bonus = Math.floor(Math.random() * 8) + 1;
+      return `${main.join(', ')} | ${bonus}`;
+    });
+    historyInput.value = lines.join('\n');
+    generateRecommendations();
+  }
+
+  document.getElementById('generate-button').addEventListener('click', generateRecommendations);
+  document.getElementById('sample-button').addEventListener('click', loadSampleHistory);
+  generateRecommendations();
+</script>
+</body>
+</html>
