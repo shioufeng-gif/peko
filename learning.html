@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧學習樂園</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft JhengHei';
+    background: linear-gradient(135deg, #fff9c4 0%, #e1f5fe 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+  /* 可愛背景氣泡 */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    z-index: -1;
+    animation: float 10s infinite ease-in-out;
+  }
+  body::before { top: -50px; left: -50px; }
+  body::after { bottom: -50px; right: -50px; animation-delay: -5s; }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(20px, 40px); }
+  }
+
+  /* 卡片上的皮克敏裝飾 */
+  .pikmin-sticker {
+    position: absolute;
+    top: -20px;
+    right: -10px;
+    font-size: 2rem;
+    background: white;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+
+  /* 新增主要入口頁面的容器樣式 */
+  .main-portal-container {
+    background: #ffffff;
+    padding: clamp(20px, 5vw, 40px);
+    border-radius: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    max-width: 800px; /* 稍微寬一點以容納更多選項 */
+    width: 100%;
+    text-align: center;
+  }
+  h1 {
+    color: #00796b;
+    font-size: clamp(2rem, 6vw, 2.8rem); /* 讓標題更大更醒目 */
+    margin-bottom: 30px;
+  }
+
+  /* 主要入口頁面的卡片網格 */
+  .main-portal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* 卡片稍微大一點 */
+    gap: 30px; /* 間距更大 */
+    margin-top: 30px;
+  }
+  .main-portal-card {
+    background: #ffffff;
+    border: 8px solid #fff; /* 更厚的邊框 */
+    border-radius: 35px; /* 更圓潤的邊角 */
+    padding: 35px 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 12px 0 #b2ebf2; /* 更深的漫畫風立體陰影 */
+    position: relative;
+  }
+  /* 為每個卡片設定不同的可愛顏色 */
+  .main-portal-card:nth-child(1) { border-color: #ffecb3; box-shadow: 0 12px 0 #ffcc80; } /* 部首 - 橘黃色系 */
+  .main-portal-card:nth-child(2) { border-color: #c5e1a5; box-shadow: 0 12px 0 #aed581; } /* 數學 - 淺綠色系 */
+  .main-portal-card:nth-child(3) { border-color: #bbdefb; box-shadow: 0 12px 0 #90caf9; } /* 筆畫 - 淺藍色系 */
+  .main-portal-card:nth-child(4) { border-color: #ffcdd2; box-shadow: 0 12px 0 #ef9a9a; } /* 注音 - 淺紅色系 */
+
+  .main-portal-card:hover {
+    transform: translateY(6px); /* 點擊時下壓更深 */
+    box-shadow: 0 6px 0 rgba(0,0,0,0.1); /* 陰影變淺 */
+  }
+  .main-portal-card i {
+    font-size: 5rem; /* 圖標更大 */
+    margin-bottom: 20px;
+    filter: drop-shadow(3px 3px 0px rgba(0,0,0,0.15)); /* 圖標陰影更明顯 */
+  }
+  .main-portal-card h3 {
+    margin: 8px 0;
+    color: #333;
+    font-size: 1.8rem; /* 標題文字更大 */
+  }
+  .main-portal-card p { 
+    font-weight: bold; 
+    color: #666; 
+    font-size: 1.1rem; /* 描述文字更大 */
+  }
+  .main-portal-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: 0 12px 0 #ccc; /* 禁用狀態的陰影 */
+    border-color: #eee; /* 禁用狀態的邊框 */
+  }
+  .main-portal-card.disabled:hover {
+    transform: translateY(0); /* 禁用狀態無動畫 */
+    box-shadow: 0 12px 0 #ccc;
+  }
+  .setup-section {
+    background: #e8f5e9;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+  }
+  .setup-section select {
+    padding: 10px;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin: 10px 0;
+    width: 90%;
+    max-width: 300px;
+  }
+  
+  /* 頂部資訊列 (進度與計時) */
+  .info-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: #555;
+    font-size: clamp(0.9rem, 3vw, 1.1rem);
+    font-weight: bold;
+    padding: 0 10px;
+  }
+
+  /* 題目框 */
+  .question-box {
+    background-color: #fff9c4;
+    padding: clamp(15px, 4vw, 25px);
+    border-radius: 15px;
+    margin-bottom: 20px;
+    font-size: clamp(1.4rem, 6vw, 2.2rem); /* 自動調整字體大小 */
+    font-weight: bold;
+    color: #333;
+    border: 3px dashed #ffb300;
+  }
+  
+  /* 選項網格 */
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(10px, 3vw, 15px);
+    margin-bottom: 20px;
+  }
+  .option-btn {
+    background-color: #f5f5f5;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: clamp(10px, 2.5vw, 15px);
+    font-size: clamp(1.2rem, 5vw, 1.8rem); /* 自動調整字體大小 */
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: bold;
+    color: #424242;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+  }
+  .zhuyin-text {
+    font-size: clamp(0.85rem, 3vw, 1.1rem);
+    color: #d81b60;
+    margin-top: 4px;
+    font-weight: bold;
+  }
+  .option-btn:hover:not(:disabled) {
+    background-color: #e3f2fd;
+    border-color: #64b5f6;
+    transform: scale(1.02);
+  }
+  .option-btn.correct {
+    background-color: #c8e6c9;
+    border-color: #4caf50;
+    color: #2e7d32;
+  }
+  .option-btn.wrong {
+    background-color: #ffcdd2;
+    border-color: #f44336;
+    color: #c62828;
+  }
+  .option-btn:disabled {
+    cursor: default;
+  }
+
+  /* 導覽按鈕區 */
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .btn {
+    flex: 1;
+    min-width: 100px;
+    color: white;
+    border: none;
+    padding: clamp(10px, 3vw, 15px);
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: background-color 0.2s, opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn-primary { background-color: #ff9800; }
+  .btn-secondary { background-color: #9e9e9e; }
+  .btn-home { background-color: #00bcd4; }
+
+  
+  /* 入口網頁樣式 */
+  .portal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+  }
+  .portal-card {
+    background: #ffffff;
+    border: 6px solid #fff;
+    border-radius: 30px;
+    padding: 30px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 10px 0 #b2ebf2; /* 漫畫風立體陰影 */
+    position: relative;
+  }
+  .portal-card:nth-child(1) { border-color: #ffe0b2; box-shadow: 0 10px 0 #ffcc80; }
+  .portal-card:nth-child(2) { border-color: #c8e6c9; box-shadow: 0 10px 0 #a5d6a7; }
+
+  .portal-card:hover {
+    transform: translateY(5px);
+    box-shadow: 0 5px 0 rgba(0,0,0,0.1);
+  }
+  .portal-card i { 
+    font-size: 4rem; 
+    margin-bottom: 15px;
+    filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.1));
+  }
+  .portal-card h3 { 
+    margin: 5px 0; 
+    color: #444; 
+    font-size: 1.5rem;
+  }
+  .portal-card p { font-weight: bold; color: #888; }
+  .disabled-card {
+    opacity: 0.6;
+    cursor: not-allowed;
+    border-color: #ccc;
+  }
+
+  /* 手機直式微調 */
+  @media (max-width: 400px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .nav-buttons { flex-direction: column; }
+    .btn { width: 100%; }
+  }
+</style>
+<!-- 引入 Font Awesome 用於圖標 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> <!-- 確保 Font Awesome 仍然被引入 -->
+</head>
+<body>
+<div class="main-portal-container">
+  <h1>✨ 智慧學習樂園 <i class="fas fa-leaf" style="color: #4caf50;"></i> ✨</h1>
+  <p style="font-size: 1.4rem; color: #00796b; font-weight: bold; margin-bottom: 30px;">選擇您想挑戰的學習項目！</p>
+  
+  <div class="main-portal-grid">
+    <!-- 部首大挑戰 -->
+    <a href="radical_quiz.html" class="main-portal-card">
+      <div class="pikmin-sticker">
+        <i class="fas fa-seedling" style="color: #ff5252;"></i>
+      </div>
+      <i class="fas fa-book-open" style="color: #ff9800;"></i>
+      <h3>部首大挑戰</h3>
+      <p>認識國字部首</p>
+    </a>
+
+    <!-- 國小數學練習 -->
+    <a href="math_quiz.html?grade=1" class="main-portal-card">
+      <div class="pikmin-sticker">
+        <i class="fas fa-leaf" style="color: #ffd740;"></i>
+      </div>
+      <i class="fas fa-calculator" style="color: #8bc34a;"></i>
+      <h3>國小一年級數學</h3>
+      <p>加減法練習</p>
+    </a>
+
+    <!-- 國小二年級數學練習 -->
+    <a href="math_quiz.html?grade=2" class="main-portal-card">
+      <div class="pikmin-sticker">
+        <i class="fas fa-seedling" style="color: #7cb342;"></i>
+      </div>
+      <i class="fas fa-plus" style="color: #66bb6a;"></i>
+      <h3>國小二年級數學</h3>
+      <p>加減與乘法練習</p>
+    </a>
+
+    <!-- 國小三年級數學練習 -->
+    <a href="math_quiz.html?grade=3" class="main-portal-card">
+      <div class="pikmin-sticker">
+        <i class="fas fa-star" style="color: #ff8a65;"></i>
+      </div>
+      <i class="fas fa-times" style="color: #ef5350;"></i>
+      <h3>國小三年級數學</h3>
+      <p>進階四則運算挑戰</p>
+    </a>
+
+    <!-- 國字筆畫練習 -->
+    <a href="strokes_quiz.html" class="main-portal-card">
+      <div class="pikmin-sticker">
+        <i class="fas fa-fan" style="color: #448aff;"></i>
+      </div>
+      <i class="fas fa-pen-nib" style="color: #2196f3;"></i>
+      <h3>國字筆畫練習</h3>
+      <p>學習正確筆順</p>
+    </a>
+
+    <!-- 注音練習 -->
+    <a href="zhuyin_quiz.html" class="main-portal-card">
+      <div class="pikmin-sticker">
+        <i class="fas fa-cloud" style="color: #9c27b0;"></i>
+      </div>
+      <i class="fas fa-microphone-alt" style="color: #f44336;"></i>
+      <h3>注音練習</h3>
+      <p>聲韻拼讀</p>
+    </a>
+
+    <!-- 造句練習 -->
+    <a href="sentence_quiz.html" class="main-portal-card">
+      <div class="pikmin-sticker">
+        <i class="fas fa-magic" style="color: #ff4081;"></i>
+      </div>
+      <i class="fas fa-pencil-alt" style="color: #e91e63;"></i>
+      <h3>造句練習</h3>
+      <p>練習寫出好句子</p>
+    </a>
+
+    <!-- 期中期末大考 -->
+    <a href="exam_quiz.html" class="main-portal-card">
+      <div class="pikmin-sticker">
+        <i class="fas fa-trophy" style="color: #ffd700;"></i>
+      </div>
+      <i class="fas fa-file-signature" style="color: #673ab7;"></i>
+      <h3>期中期末大考</h3>
+      <p>國語、數學全方位挑戰</p>
+    </a>
+  </div>
+</div>
+
+</body>
+</html>
