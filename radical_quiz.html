@@ -94,6 +94,16 @@
     color: #333;
     border: 3px dashed #ffb300;
   }
+  .radical-reference {
+    margin: -8px 0 18px;
+    color: #607d8b;
+    font-size: .9rem;
+  }
+  .radical-reference a {
+    color: #00796b;
+    font-weight: bold;
+    text-underline-offset: 3px;
+  }
   
   /* 選項網格 */
   .options-grid {
@@ -267,6 +277,67 @@
     cursor: not-allowed;
     border-color: #ccc;
   }
+  .database-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, .7fr) auto;
+    gap: 10px;
+    margin: 18px 0;
+  }
+  .database-toolbar input, .database-toolbar select, .radical-edit {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #cfd8dc;
+    border-radius: 10px;
+    background: white;
+    font: inherit;
+  }
+  .database-table-wrap {
+    max-height: 60vh;
+    overflow: auto;
+    border: 1px solid #dfe5e2;
+    border-radius: 12px;
+    background: white;
+  }
+  .database-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  .database-table th, .database-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #e8eeea;
+    vertical-align: middle;
+  }
+  .database-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #e8f5e9;
+    color: #285d4f;
+  }
+  .database-table tr:last-child td { border-bottom: 0; }
+  .database-char { font-size: 1.35rem; font-weight: 800; }
+  .database-source { color: #687a72; font-size: .88rem; }
+  .radical-edit { width: 130px; }
+  .database-save {
+    padding: 9px 12px;
+    border: 0;
+    border-radius: 9px;
+    background: #00897b;
+    color: white;
+    cursor: pointer;
+    font-weight: 750;
+  }
+  .database-save:hover { background: #00796b; }
+  .dictionary-cell a { color: #00796b; font-weight: 700; }
+  .database-status { min-height: 24px; margin: 8px 0; color: #28755f; font-weight: 700; }
+  .database-empty { padding: 24px; color: #687a72; text-align: center; }
+  @media (max-width: 600px) {
+    .database-toolbar { grid-template-columns: 1fr; }
+    .database-table th, .database-table td { padding: 8px 6px; font-size: .88rem; }
+    .radical-edit { width: 92px; }
+    .database-save { padding: 8px; }
+  }
 
   /* 手機直式微調 */
   @media (max-width: 400px) {
@@ -299,11 +370,50 @@
         <h3>第七到十二課</h3>
         <p>🏆 實力挑戰</p>
       </div>
+      <div class="portal-card" onclick="selectCategory('additional-words')">
+        <i class="fas fa-spell-check" style="color: #2196f3;"></i>
+        <h3>新增字詞挑戰</h3>
+        <p id="additional-word-count">📘 加入新國字</p>
+      </div>
+      <div class="portal-card" onclick="selectCategory('grade2-upper-1-6')">
+        <i class="fas fa-book-reader" style="color: #9c27b0;"></i>
+        <h3>二年級上學期第一到第六課</h3>
+        <p>📗 國字部首練習</p>
+      </div>
+      <div class="portal-card" onclick="showDatabase()">
+        <i class="fas fa-database" style="color: #00897b;"></i>
+        <h3>部首資料庫</h3>
+        <p>🔎 搜尋、檢查與修正</p>
+      </div>
     </div>
     <br>
     <button class="btn btn-home" onclick="goHome()" style="width: 200px;">🏠 返回大廳</button>
     <p style="font-size: 0.9rem; color: #00796b; margin-top: 35px; background: rgba(255,255,255,0.5); display: inline-block; padding: 5px 15px; border-radius: 20px;">📖 出自康軒版國語教材</p>
   </div>
+
+  <section id="database-ui" style="display:none; text-align:left;" aria-labelledby="database-title">
+    <h2 id="database-title" style="color:#00796b; margin-top:0;">部首資料庫檢查</h2>
+    <p style="color:#607d8b; line-height:1.6;">檢查各課國字、注音與部首。修改後按「儲存」即可保存在目前瀏覽器，測驗題目也會使用修正值。</p>
+    <div class="database-toolbar">
+      <input id="database-search" type="search" placeholder="搜尋國字、注音或部首" aria-label="搜尋國字、注音或部首">
+      <select id="database-filter" aria-label="篩選資料分類">
+        <option value="all">全部分類</option>
+        <option value="grade1-lower-1-6">第一到六課</option>
+        <option value="grade1-lower-7-12">第七到十二課</option>
+        <option value="additional-words">新增字詞／二年級上學期</option>
+      </select>
+      <button class="btn btn-secondary" type="button" onclick="resetRadicalOverrides()">還原全部修改</button>
+    </div>
+    <p class="database-status" id="database-status" role="status" aria-live="polite"></p>
+    <div class="database-table-wrap">
+      <table class="database-table">
+        <thead><tr><th scope="col">國字</th><th scope="col">注音</th><th scope="col">部首（可修改）</th><th scope="col">分類</th><th scope="col">查字典</th><th scope="col">操作</th></tr></thead>
+        <tbody id="database-rows"></tbody>
+      </table>
+      <p class="database-empty" id="database-empty" hidden>找不到符合條件的字。</p>
+    </div>
+    <button class="btn btn-home" type="button" onclick="showPortal()" style="margin-top:15px;">⬅️ 返回課程選擇</button>
+  </section>
 
   <div id="setup-ui" class="setup-section" style="display:none">
     <h2 id="category-title" style="color: #2e7d32; margin-top: 0;"></h2>
@@ -325,6 +435,10 @@
       <span id="timer-display">⏱️ 00:00</span>
     </div>
     <div class="question-box" id="question-text">載入中...</div>
+    <p class="radical-reference">
+      部首有疑問？
+      <a id="dictionary-link" href="https://dict.revised.moe.edu.tw/" target="_blank" rel="noopener noreferrer">查教育部《重編國語辭典修訂本》（前國立編譯館編纂）</a>
+    </p>
     <div class="options-grid" id="options-container"></div>
     <div class="feedback" id="feedback-box"></div>
     
@@ -401,6 +515,243 @@
   let streakCounter = 0;
   let restReminderShown = false;
   
+  const existingCharacters = new Set([...data1to6, ...data7to12].map(item => item[0]));
+  const additionalWords = [
+    ["年", "ㄋㄧㄢˊ", "干", "禾", "十", "人"], ["希", "ㄒㄧ", "巾", "布", "爻", "大"],
+    ["望", "ㄨㄤˋ", "月", "王", "亡", "目"], ["坐", "ㄗㄨㄛˋ", "土", "人", "一", "大"],
+    ["位", "ㄨㄟˋ", "人(亻)", "立", "山", "口"], ["本", "ㄅㄣˇ", "木", "一", "十", "人"],
+    ["淡", "ㄉㄢˋ", "水(氵)", "火", "炎", "木"], ["書", "ㄕㄨ", "曰", "聿", "日", "口"],
+    ["老", "ㄌㄠˇ", "老", "耂", "匕", "土"], ["師", "ㄕ", "巾", "帀", "一", "口"],
+    ["以", "ㄧˇ", "人", "丶", "入", "又"], ["為", "ㄨㄟˋ", "火", "爪", "灬", "力"],
+    ["故", "ㄍㄨˋ", "攴(攵)", "古", "口", "又"], ["用", "ㄩㄥˋ", "用", "月", "丨", "冂"],
+    ["力", "ㄌㄧˋ", "力", "刀", "又", "人"], ["只", "ㄓˇ", "口", "八", "人", "日"],
+    ["現", "ㄒㄧㄢˋ", "玉(王)", "見", "目", "人"], ["還", "ㄏㄞˊ", "辵(辶)", "不", "口", "衣"],
+    ["巷", "ㄒㄧㄤˋ", "己", "共", "巳", "已"], ["叔", "ㄕㄨˊ", "又", "上", "小", "寸"],
+    ["貓", "ㄇㄠ", "豸", "犬", "苗", "虫"], ["屋", "ㄨ", "尸", "至", "土", "宀"],
+    ["捧", "ㄆㄥˇ", "手(扌)", "奉", "大", "又"], ["蝴", "ㄏㄨˊ", "虫", "胡", "月", "口"],
+    ["蝶", "ㄉㄧㄝˊ", "虫", "枼", "木", "世"], ["忙", "ㄇㄤˊ", "心(忄)", "亡", "口", "人"],
+    ["娶", "ㄑㄩˇ", "女", "取", "又", "耳"], ["娘", "ㄋㄧㄤˊ", "女", "良", "艮", "口"],
+    ["黃", "ㄏㄨㄤˊ", "黃", "田", "由", "廿"], ["筆", "ㄅㄧˇ", "竹", "聿", "毛", "木"],
+    ["打", "ㄉㄚˇ", "手(扌)", "丁", "口", "一"], ["扮", "ㄅㄢˋ", "手(扌)", "分", "刀", "八"],
+    ["樣", "ㄧㄤˋ", "木", "羊", "水", "王"], ["越", "ㄩㄝˋ", "走", "戉", "土", "戈"],
+    ["美", "ㄇㄟˇ", "羊", "大", "王", "人"], ["麗", "ㄌㄧˋ", "鹿", "一", "比", "麗"],
+    ["竹", "ㄓㄨˊ", "竹", "个", "丿", "木"], ["藍", "ㄌㄢˊ", "艸(艹)", "監", "皿", "木"],
+    ["鄉", "ㄒㄧㄤ", "邑(右阝)", "幺", "艮", "阜(左阝)"], ["南", "ㄋㄢˊ", "十", "冂", "羊", "人"],
+    ["暑", "ㄕㄨˇ", "日", "者", "土", "火"], ["假", "ㄐㄧㄚˋ", "人(亻)", "叚", "又", "口"],
+    ["帶", "ㄉㄞˋ", "巾", "丿", "冖", "土"], ["等", "ㄉㄥˇ", "竹", "寺", "土", "寸"],
+    ["跨", "ㄎㄨㄚˋ", "足", "夸", "大", "口"], ["划", "ㄏㄨㄚˊ", "刀", "戈", "一", "刂"],
+    ["吹", "ㄔㄨㄟ", "口", "欠", "人", "日"], ["邊", "ㄅㄧㄢ", "辵(辶)", "自", "方", "口"],
+    ["叫", "ㄐㄧㄠˋ", "口", "丩", "力", "日"], ["原", "ㄩㄢˊ", "厂", "泉", "白", "小"],
+    ["近", "ㄐㄧㄣˋ", "辵(辶)", "斤", "彳", "走"], ["捕", "ㄅㄨˇ", "手(扌)", "甫", "田", "木"],
+    ["活", "ㄏㄨㄛˊ", "水(氵)", "舌", "口", "木"], ["識", "ㄕˋ", "言", "戠", "音", "口"],
+    ["運", "ㄩㄣˋ", "辵(辶)", "軍", "車", "走"], ["動", "ㄉㄨㄥˋ", "力", "重", "田", "日"],
+    ["飄", "ㄆㄧㄠ", "風", "票", "示", "火"], ["熱", "ㄖㄜˋ", "火", "埶", "灬", "土"],
+    ["鬧", "ㄋㄠˋ", "鬥", "市", "門", "巾"], ["舞", "ㄨˇ", "舛", "無", "夕", "牛"],
+    ["哇", "ㄨㄚ", "口", "圭", "土", "人"], ["往", "ㄨㄤˇ", "彳", "主", "王", "辵"],
+    ["容", "ㄖㄨㄥˊ", "宀", "谷", "口", "八"], ["步", "ㄅㄨˋ", "止", "少", "小", "人"],
+    ["汗", "ㄏㄢˋ", "水(氵)", "干", "日", "木"], ["腳", "ㄐㄧㄠˇ", "肉(月)", "卻", "足", "月"],
+    ["協", "ㄒㄧㄝˊ", "十", "劦", "力", "口"], ["聲", "ㄕㄥ", "耳", "殳", "士", "口"],
+    ["河", "ㄏㄜˊ", "水(氵)", "可", "口", "木"], ["氣", "ㄑㄧˋ", "气", "米", "乙", "水"],
+    ["最", "ㄗㄨㄟˋ", "曰", "取", "耳", "日"], ["可", "ㄎㄜˇ", "口", "丁", "一", "亅"],
+    ["全", "ㄑㄩㄢˊ", "入", "王", "人", "玉"], ["蛋", "ㄉㄢˋ", "虫", "疋", "石", "口"],
+    ["煎", "ㄐㄧㄢ", "火", "前", "灬", "刀"], ["圓", "ㄩㄢˊ", "囗", "員", "口", "貝"],
+    ["番", "ㄈㄢ", "田", "釆", "米", "口"], ["茄", "ㄑㄧㄝˊ", "艸(艹)", "加", "口", "木"],
+    ["切", "ㄑㄧㄝ", "刀", "七", "人", "力"], ["輪", "ㄌㄨㄣˊ", "車", "侖", "人", "口"],
+    ["吐", "ㄊㄨˇ", "口", "土", "十", "日"], ["司", "ㄙ", "口", "𠃌", "一", "人"],
+    ["夾", "ㄐㄧㄚˊ", "大", "人", "入", "一"], ["中", "ㄓㄨㄥ", "丨", "口", "十", "虫"],
+    ["方", "ㄈㄤ", "方", "丶", "力", "一"], ["城", "ㄔㄥˊ", "土", "成", "戈", "人"],
+    ["堡", "ㄅㄠˇ", "土", "保", "人", "口"], ["接", "ㄐㄧㄝ", "手(扌)", "妾", "女", "立"],
+    ["畫", "ㄏㄨㄚˋ", "田", "聿", "一", "口"], ["臉", "ㄌㄧㄢˇ", "肉(月)", "僉", "人", "口"],
+    ["鎮", "ㄓㄣˋ", "金", "真", "土", "人"], ["餅", "ㄅㄧㄥˇ", "食", "并", "米", "口"],
+    ["節", "ㄐㄧㄝˊ", "竹", "即", "艸", "刀"], ["因", "ㄧㄣ", "囗", "大", "口", "人"],
+    ["此", "ㄘˇ", "止", "匕", "人", "土"], ["進", "ㄐㄧㄣˋ", "辵(辶)", "隹", "井", "走"],
+    ["排", "ㄆㄞˊ", "手(扌)", "非", "扉", "木"], ["遠", "ㄩㄢˇ", "辵(辶)", "袁", "衣", "走"],
+    ["色", "ㄙㄜˋ", "色", "巴", "勹", "刀"],
+    ["愛", "ㄞˋ", "心", "爪", "友", "日"], ["月", "ㄩㄝˋ", "月", "肉", "夕", "日"],
+    ["乾", "ㄍㄢ", "乙", "十", "日", "干"], ["甜", "ㄊㄧㄢˊ", "甘", "舌", "口", "日"],
+    ["買", "ㄇㄞˇ", "貝", "网", "目", "見"], ["親", "ㄑㄧㄣ", "見", "亲", "木", "目"],
+    ["如", "ㄖㄨˊ", "女", "口", "又", "人"], ["意", "ㄧˋ", "心", "音", "日", "立"]
+  ].filter(item => !existingCharacters.has(item[0]));
+  document.getElementById('additional-word-count').textContent = `📘 ${additionalWords.length} 個新國字`;
+
+  const RADICAL_OVERRIDE_KEY = 'radicalQuizRadicalOverrides';
+  let radicalOverrides = {};
+  try {
+    const savedOverrides = localStorage.getItem(RADICAL_OVERRIDE_KEY);
+    if (savedOverrides) {
+      const parsedOverrides = JSON.parse(savedOverrides);
+      if (parsedOverrides && typeof parsedOverrides === 'object' && !Array.isArray(parsedOverrides)) {
+        radicalOverrides = parsedOverrides;
+      } else {
+        throw new Error('部首修正資料格式不正確。');
+      }
+    }
+  } catch (error) {
+    document.getElementById('database-status').textContent = `無法讀取已儲存的修正：${error.message}`;
+  }
+
+  const radicalSourceGroups = [
+    { id: 'grade1-lower-1-6', label: '第一到六課', data: data1to6 },
+    { id: 'grade1-lower-7-12', label: '第七到十二課', data: data7to12 },
+    { id: 'additional-words', label: '新增字詞／二年級上學期', data: additionalWords }
+  ];
+
+  function getRadicalFor(item) {
+    return radicalOverrides[item[0]] || item[2];
+  }
+
+  function getRadicalRecords() {
+    const records = new Map();
+    radicalSourceGroups.forEach(group => {
+      group.data.forEach(item => {
+        const record = records.get(item[0]) || {
+          char: item[0],
+          zhuyin: item[1],
+          radical: item[2],
+          categories: []
+        };
+        if (!record.categories.includes(group.id)) record.categories.push(group.id);
+        records.set(item[0], record);
+      });
+    });
+    return [...records.values()].sort((a, b) => a.char.localeCompare(b.char, 'zh-Hant'));
+  }
+
+  const radicalRecords = getRadicalRecords();
+  const databaseRows = document.getElementById('database-rows');
+  const databaseSearch = document.getElementById('database-search');
+  const databaseFilter = document.getElementById('database-filter');
+  const databaseStatus = document.getElementById('database-status');
+
+  function dictionaryLookupUrl(char) {
+    const url = new URL('https://dict.revised.moe.edu.tw/search.jsp');
+    url.searchParams.set('word', char);
+    url.searchParams.set('la', '0');
+    url.searchParams.set('powerMode', '0');
+    return url.toString();
+  }
+
+  function renderRadicalDatabase() {
+    const query = databaseSearch.value.trim().toLocaleLowerCase();
+    const selectedCategory = databaseFilter.value;
+    const filteredRecords = radicalRecords.filter(record => {
+      const matchesCategory = selectedCategory === 'all' || record.categories.includes(selectedCategory);
+      const matchesQuery = !query
+        || `${record.char} ${record.zhuyin} ${radicalOverrides[record.char] || record.radical}`.toLocaleLowerCase().includes(query);
+      return matchesCategory && matchesQuery;
+    });
+    const fragment = document.createDocumentFragment();
+
+    filteredRecords.forEach(record => {
+      const row = document.createElement('tr');
+      const characterCell = document.createElement('td');
+      characterCell.className = 'database-char';
+      characterCell.textContent = record.char;
+
+      const zhuyinCell = document.createElement('td');
+      zhuyinCell.textContent = record.zhuyin;
+
+      const radicalCell = document.createElement('td');
+      const radicalInput = document.createElement('input');
+      radicalInput.className = 'radical-edit';
+      radicalInput.type = 'text';
+      radicalInput.value = radicalOverrides[record.char] || record.radical;
+      radicalInput.dataset.radicalChar = record.char;
+      radicalInput.setAttribute('aria-label', `${record.char} 的部首`);
+      radicalCell.appendChild(radicalInput);
+
+      const sourceCell = document.createElement('td');
+      sourceCell.className = 'database-source';
+      sourceCell.textContent = record.categories.map(id =>
+        radicalSourceGroups.find(group => group.id === id).label
+      ).join('、');
+
+      const dictionaryCell = document.createElement('td');
+      dictionaryCell.className = 'dictionary-cell';
+      const dictionaryLink = document.createElement('a');
+      dictionaryLink.href = dictionaryLookupUrl(record.char);
+      dictionaryLink.target = '_blank';
+      dictionaryLink.rel = 'noopener noreferrer';
+      dictionaryLink.textContent = '查詢';
+      dictionaryLink.setAttribute('aria-label', `查詢「${record.char}」的教育部辭典資料`);
+      dictionaryCell.appendChild(dictionaryLink);
+
+      const actionCell = document.createElement('td');
+      const saveButton = document.createElement('button');
+      saveButton.className = 'database-save';
+      saveButton.type = 'button';
+      saveButton.dataset.saveRadical = record.char;
+      saveButton.textContent = '儲存';
+      actionCell.appendChild(saveButton);
+
+      row.append(characterCell, zhuyinCell, radicalCell, sourceCell, dictionaryCell, actionCell);
+      fragment.appendChild(row);
+    });
+
+    databaseRows.replaceChildren(fragment);
+    document.getElementById('database-empty').hidden = filteredRecords.length > 0;
+    databaseStatus.textContent = `共 ${radicalRecords.length} 個不重複國字；目前顯示 ${filteredRecords.length} 個，已修正 ${Object.keys(radicalOverrides).length} 個部首。`;
+  }
+
+  function showDatabase() {
+    document.getElementById('portal-ui').style.display = 'none';
+    document.getElementById('database-ui').style.display = 'block';
+    renderRadicalDatabase();
+  }
+
+  function saveRadicalCorrection(char) {
+    const input = databaseRows.querySelector(`[data-radical-char="${char}"]`);
+    const radical = input.value.trim().replace(/部$/, '');
+    if (!radical) {
+      databaseStatus.textContent = `「${char}」的部首不可空白，尚未儲存。`;
+      input.focus();
+      return;
+    }
+
+    const record = radicalRecords.find(item => item.char === char);
+    if (!record) {
+      databaseStatus.textContent = `找不到「${char}」的字庫資料，無法儲存。`;
+      return;
+    }
+
+    const nextOverrides = { ...radicalOverrides };
+    if (radical === record.radical) delete nextOverrides[char];
+    else nextOverrides[char] = radical;
+
+    try {
+      localStorage.setItem(RADICAL_OVERRIDE_KEY, JSON.stringify(nextOverrides));
+      radicalOverrides = nextOverrides;
+      renderRadicalDatabase();
+      databaseStatus.textContent = `「${char}」的部首已儲存為「${radical}」，之後測驗會使用這個答案。`;
+    } catch (error) {
+      databaseStatus.textContent = `儲存失敗，瀏覽器未能保存修正：${error.message}`;
+    }
+  }
+
+  function resetRadicalOverrides() {
+    if (Object.keys(radicalOverrides).length === 0) {
+      databaseStatus.textContent = '目前沒有已儲存的部首修改。';
+      return;
+    }
+    if (!confirm('確定要還原全部已修改的部首嗎？')) return;
+    try {
+      localStorage.removeItem(RADICAL_OVERRIDE_KEY);
+      radicalOverrides = {};
+      renderRadicalDatabase();
+      databaseStatus.textContent = '所有部首已還原為題庫原始資料。';
+    } catch (error) {
+      databaseStatus.textContent = `還原失敗，瀏覽器未能更新資料：${error.message}`;
+    }
+  }
+
+  databaseSearch.addEventListener('input', renderRadicalDatabase);
+  databaseFilter.addEventListener('change', renderRadicalDatabase);
+  databaseRows.addEventListener('click', event => {
+    const button = event.target.closest('[data-save-radical]');
+    if (button) saveRadicalCorrection(button.dataset.saveRadical);
+  });
+  renderRadicalDatabase();
+
   let userStats = JSON.parse(localStorage.getItem('radicalQuizStats')) || {};
 
   // 部首與選項組件的注音對照表
@@ -492,6 +843,12 @@
     } else if (category === 'grade1-lower-7-12') {
       currentDataPool = data7to12;
       document.getElementById('category-title').textContent = '📚 國小一下 (7~12課)';
+    } else if (category === 'additional-words') {
+      currentDataPool = additionalWords;
+      document.getElementById('category-title').textContent = '📚 新增字詞挑戰';
+    } else if (category === 'grade2-upper-1-6') {
+      currentDataPool = additionalWords;
+      document.getElementById('category-title').textContent = '📚 二年級上學期第一到第六課';
     }
 
     // 更新「全部作答」選項的題數文字
@@ -502,6 +859,7 @@
   function showPortal() {
     document.getElementById('setup-ui').style.display = 'none';
     document.getElementById('result-ui').style.display = 'none';
+    document.getElementById('database-ui').style.display = 'none';
     document.getElementById('portal-ui').style.display = 'block';
   }
 
@@ -525,7 +883,7 @@
     
     quizData = selectedWords.map(item => {
       const char = item[0];
-      const correctRadical = item[2];
+      const correctRadical = getRadicalFor(item);
       
       let uniqueOptions = new Set();
       uniqueOptions.add(correctRadical); 
@@ -534,7 +892,7 @@
       wrongPool.forEach(opt => uniqueOptions.add(opt));
 
       while(uniqueOptions.size < 4) {
-        let randomChar = currentDataPool[Math.floor(Math.random() * currentDataPool.length)][2];
+        let randomChar = getRadicalFor(currentDataPool[Math.floor(Math.random() * currentDataPool.length)]);
         uniqueOptions.add(randomChar);
       }
 
@@ -567,6 +925,11 @@
   function loadQuestion() {
     const currentQuiz = quizData[currentQuestionIndex];
     document.getElementById('question-text').textContent = currentQuiz.question;
+    const dictionaryUrl = new URL('https://dict.revised.moe.edu.tw/search.jsp');
+    dictionaryUrl.searchParams.set('word', currentQuiz.char);
+    dictionaryUrl.searchParams.set('la', '0');
+    dictionaryUrl.searchParams.set('powerMode', '0');
+    document.getElementById('dictionary-link').href = dictionaryUrl.toString();
     document.getElementById('progress').textContent = `進度: ${currentQuestionIndex + 1} / ${totalQuestions}`;
     
     const optionsContainer = document.getElementById('options-container');
