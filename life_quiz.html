@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f5fbf4">
+<title>康軒版二年級上學期生活科練習</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    display: grid;
+    min-height: 100vh;
+    margin: 0;
+    padding: 22px 14px;
+    place-items: center;
+    color: #34413b;
+    background: linear-gradient(140deg, #f3fae8, #e5f6f7);
+    font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+  }
+  .quiz-container {
+    width: min(100%, 760px);
+    padding: clamp(20px, 5vw, 40px);
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 16px 45px rgba(49, 87, 67, .13);
+  }
+  .home-link {
+    display: inline-flex;
+    margin-bottom: 16px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: #edf7e9;
+    color: #286c59;
+    font-weight: 750;
+    text-decoration: none;
+  }
+  h1 { margin: 0; color: #286c59; font-size: clamp(1.7rem, 5vw, 2.4rem); }
+  .intro { color: #68776e; line-height: 1.7; }
+  .setup, .question-card, .result-card {
+    margin-top: 20px;
+    padding: clamp(18px, 4vw, 28px);
+    border: 2px solid #d9edda;
+    border-radius: 20px;
+    background: #f8fcf6;
+  }
+  label { display: block; margin: 16px 0 7px; font-weight: 750; }
+  select, .btn {
+    width: 100%;
+    min-height: 48px;
+    padding: 11px 14px;
+    border: 2px solid #cfe3d0;
+    border-radius: 12px;
+    background: white;
+    color: #34413b;
+    font: inherit;
+    font-size: 1rem;
+  }
+  select:focus-visible, .btn:focus-visible, input:focus-visible, .option:focus-visible {
+    outline: 3px solid #388e6a;
+    outline-offset: 3px;
+  }
+  .toggle-row { display: flex; align-items: center; gap: 10px; margin: 18px 0; }
+  .toggle-row label { display: inline; margin: 0; }
+  .toggle-row input { width: 20px; height: 20px; accent-color: #318265; }
+  .btn {
+    border: 0;
+    background: #318265;
+    color: white;
+    cursor: pointer;
+    font-weight: 800;
+  }
+  .btn:hover { background: #256b53; }
+  .btn-secondary { margin-top: 10px; background: #e8f2e8; color: #286c59; }
+  .btn-secondary:hover { background: #d8ead8; }
+  .info-bar { display: flex; justify-content: space-between; gap: 12px; color: #52675a; font-weight: 750; }
+  .question-card { border-color: #cbe8dc; background: #f4fbf7; }
+  .unit-label { margin: 0 0 12px; color: #318265; font-weight: 800; }
+  .question { margin: 0; color: #263d32; font-size: clamp(1.35rem, 4vw, 1.8rem); line-height: 1.65; }
+  .annotated-char {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .reading {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin-left: .08em;
+    color: #7a5a9c;
+    font-size: .46em;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .reading-core {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: .9;
+  }
+  .phonetic-symbol, .reading-tone {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+  }
+  .reading-tone:not(.neutral-tone) {
+    align-self: center;
+    margin-left: .12em;
+  }
+  .reading-tone.neutral-tone {
+    position: absolute;
+    top: -.55em;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .reading[hidden] { display: none; }
+  .options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
+  .option {
+    min-height: 76px;
+    padding: 12px;
+    border: 2px solid #d5e5d7;
+    border-radius: 14px;
+    background: white;
+    color: #34413b;
+    cursor: pointer;
+    font: inherit;
+    font-size: 1.12rem;
+    font-weight: 750;
+    line-height: 1.5;
+  }
+  .option:hover:not(:disabled) { border-color: #70ad83; background: #f3faf2; }
+  .option.correct { border-color: #48a36a; background: #e1f4e5; }
+  .option.wrong { border-color: #d96b6b; background: #ffebeb; }
+  .feedback { min-height: 1.6em; margin: 16px 0 0; font-weight: 800; }
+  .feedback.good { color: #287c49; }
+  .feedback.bad { color: #bd4848; }
+  .score { color: #286c59; font-size: 1.35rem; font-weight: 850; }
+  @media (max-width: 520px) {
+    .options { grid-template-columns: 1fr; }
+    .info-bar { font-size: .9rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+<main class="quiz-container">
+  <a class="home-link" href="learning.html">← 返回智慧學習樂園</a>
+  <h1>🌱 康軒版二年級上學期生活科</h1>
+  <p class="intro">依常見單元主題整理原創練習題，每單元有選擇題和是非題。不同學年度的單元編排可能調整，請以課本為準。可開啟注音輔助讀題。</p>
+
+  <section id="setup" class="setup" aria-label="測驗設定">
+    <label for="unit-select">選擇單元</label>
+    <select id="unit-select">
+      <option value="all">全部單元</option>
+    </select>
+    <label for="type-select">選擇題型</label>
+    <select id="type-select">
+      <option value="all">混合題（選擇＋是非）</option>
+      <option value="choice">選擇題</option>
+      <option value="trueFalse">是非題</option>
+    </select>
+    <div class="toggle-row">
+      <input id="zhuyin-toggle" type="checkbox" checked>
+      <label for="zhuyin-toggle">顯示注音輔助</label>
+    </div>
+    <button class="btn" id="start-btn" type="button">開始練習</button>
+  </section>
+
+  <section id="quiz" hidden aria-live="polite">
+    <div class="info-bar">
+      <span id="progress"></span>
+      <span id="score"></span>
+    </div>
+    <div class="question-card">
+      <p class="unit-label" id="unit-label"></p>
+      <p class="question" id="question"></p>
+      <div class="options" id="options"></div>
+      <p class="feedback" id="feedback" aria-live="polite"></p>
+      <button class="btn" id="next-btn" type="button" hidden>下一題 →</button>
+    </div>
+    <button class="btn btn-secondary" id="quit-btn" type="button">返回測驗設定</button>
+  </section>
+
+  <section id="result" class="result-card" hidden aria-live="polite">
+    <h2>練習完成！</h2>
+    <p class="score" id="result-score"></p>
+    <p id="result-message"></p>
+    <button class="btn" id="restart-btn" type="button">再練一次</button>
+    <button class="btn btn-secondary" id="result-setup-btn" type="button">選擇其他單元</button>
+  </section>
+</main>
+
+<script>
+  const units = [
+    {
+      title: "第一單元：動物好朋友",
+      questions: [
+        { type: "choice", q: "觀察校園裡的小動物時，哪一種做法比較適當？", z: "ㄍㄨㄢ ㄔㄚˊ ㄒㄧㄠˋ ㄩㄢˊ ㄌㄧˇ ㄉㄜ˙ ㄒㄧㄠˇ ㄉㄨㄥˋ ㄨˋ ㄕˊ，ㄋㄚˇ ㄧˋ ㄓㄨㄥˇ ㄗㄨㄛˋ ㄈㄚˇ ㄅㄧˇ ㄐㄧㄠˋ ㄕˋ ㄉㄤˋ？", options: [["安靜觀察，不抓牠們", "ㄢ ㄐㄧㄥˋ ㄍㄨㄢ ㄔㄚˊ，ㄅㄨˋ ㄓㄨㄚ ㄊㄚ ㄇㄣ˙"], ["把牠們帶回家", "ㄅㄚˇ ㄊㄚ ㄇㄣ˙ ㄉㄞˋ ㄏㄨㄟˊ ㄐㄧㄚ"], ["大聲追趕牠們", "ㄉㄚˋ ㄕㄥ ㄓㄨㄟ ㄍㄢˇ ㄊㄚ ㄇㄣ˙"], ["用石頭丟牠們", "ㄩㄥˋ ㄕˊ ㄊㄡ˙ ㄉㄧㄡ ㄊㄚ ㄇㄣ˙"]], answer: 0 },
+        { type: "choice", q: "看到蝴蝶停在花上，可以怎麼做？", z: "ㄎㄢˋ ㄉㄠˋ ㄏㄨˊ ㄉㄧㄝˊ ㄊㄧㄥˊ ㄗㄞˋ ㄏㄨㄚ ㄕㄤˋ，ㄎㄜˇ ㄧˇ ㄗㄣˇ ㄇㄜ˙ ㄗㄨㄛˋ？", options: [["遠遠觀察，不去打擾", "ㄩㄢˇ ㄩㄢˇ ㄍㄨㄢ ㄔㄚˊ，ㄅㄨˋ ㄑㄩˋ ㄉㄚˇ ㄖㄠˇ"], ["把花摘下來", "ㄅㄚˇ ㄏㄨㄚ ㄓㄞ ㄒㄧㄚˋ ㄌㄞˊ"], ["用手抓蝴蝶", "ㄩㄥˋ ㄕㄡˇ ㄓㄨㄚ ㄏㄨˊ ㄉㄧㄝˊ"], ["大聲嚇牠", "ㄉㄚˋ ㄕㄥ ㄒㄧㄚˋ ㄊㄚ"]], answer: 0 },
+        { type: "choice", q: "小鳥需要什麼，才能健康長大？", z: "ㄒㄧㄠˇ ㄋㄧㄠˇ ㄒㄩ ㄧㄠˋ ㄕㄣˊ ㄇㄜ˙，ㄘㄞˊ ㄋㄥˊ ㄐㄧㄢˋ ㄎㄤ ㄓㄤˇ ㄉㄚˋ？", options: [["適合的食物和安全的環境", "ㄕˋ ㄏㄜˊ ㄉㄜ˙ ㄕˊ ㄨˋ ㄏㄢˋ ㄢ ㄑㄩㄢˊ ㄉㄜ˙ ㄏㄨㄢˊ ㄐㄧㄥˋ"], ["一直被人摸", "ㄧˋ ㄓˊ ㄅㄟˋ ㄖㄣˊ ㄇㄛ"], ["住在沒有空氣的盒子裡", "ㄓㄨˋ ㄗㄞˋ ㄇㄟˊ ㄧㄡˇ ㄎㄨㄥ ㄑㄧˋ ㄉㄜ˙ ㄏㄜˊ ㄗ˙ ㄌㄧˇ"], ["每天吃糖果", "ㄇㄟˇ ㄊㄧㄢ ㄔ ㄊㄤˊ ㄍㄨㄛˇ"]], answer: 0 },
+        { type: "choice", q: "發現受傷的小動物，最適合怎麼做？", z: "ㄈㄚ ㄒㄧㄢˋ ㄕㄡˋ ㄕㄤ ㄉㄜ˙ ㄒㄧㄠˇ ㄉㄨㄥˋ ㄨˋ，ㄗㄨㄟˋ ㄕˋ ㄏㄜˊ ㄗㄣˇ ㄇㄜ˙ ㄗㄨㄛˋ？", options: [["告訴老師或大人，請他們幫忙", "ㄍㄠˋ ㄙㄨˋ ㄌㄠˇ ㄕ ㄏㄨㄛˋ ㄉㄚˋ ㄖㄣˊ，ㄑㄧㄥˇ ㄊㄚ ㄇㄣ˙ ㄅㄤ ㄇㄤˊ"], ["自己藏起來養", "ㄗˋ ㄐㄧˇ ㄘㄤˊ ㄑㄧˇ ㄌㄞˊ ㄧㄤˇ"], ["帶去教室玩", "ㄉㄞˋ ㄑㄩˋ ㄐㄧㄠˋ ㄕˋ ㄨㄢˊ"], ["假裝沒看到", "ㄐㄧㄚˇ ㄓㄨㄤ ㄇㄟˊ ㄎㄢˋ ㄉㄠˋ"]], answer: 0 },
+        { type: "choice", q: "下列哪一種行為不適合用來觀察小動物？", z: "ㄒㄧㄚˋ ㄌㄧㄝˋ ㄋㄚˇ ㄧˋ ㄓㄨㄥˇ ㄒㄧㄥˊ ㄨㄟˊ ㄅㄨˋ ㄕˋ ㄏㄜˊ ㄩㄥˋ ㄌㄞˊ ㄍㄨㄢ ㄔㄚˊ ㄒㄧㄠˇ ㄉㄨㄥˋ ㄨˋ？", options: [["安靜地看一看", "ㄢ ㄐㄧㄥˋ ㄉㄜ˙ ㄎㄢˋ ㄧˊ ㄎㄢˋ"], ["記錄牠的外形", "ㄐㄧˋ ㄌㄨˋ ㄊㄚ ㄉㄜ˙ ㄨㄞˋ ㄒㄧㄥˊ"], ["用手抓起來玩", "ㄩㄥˋ ㄕㄡˇ ㄓㄨㄚ ㄑㄧˇ ㄌㄞˊ ㄨㄢˊ"], ["保持適當距離", "ㄅㄠˇ ㄔˊ ㄕˋ ㄉㄤˋ ㄐㄩˋ ㄌㄧˊ"]], answer: 2 },
+        { type: "trueFalse", q: "觀察動物時，應該愛護牠們，不隨便傷害牠們。", z: "ㄍㄨㄢ ㄔㄚˊ ㄉㄨㄥˋ ㄨˋ ㄕˊ，ㄧㄥ ㄍㄞ ㄞˋ ㄏㄨˋ ㄊㄚ ㄇㄣ˙，ㄅㄨˋ ㄙㄨㄟˊ ㄅㄧㄢˋ ㄕㄤ ㄏㄞˋ ㄊㄚ ㄇㄣ˙。", answer: true },
+        { type: "trueFalse", q: "看到小動物，就可以把牠抓回家當玩具。", z: "ㄎㄢˋ ㄉㄠˋ ㄒㄧㄠˇ ㄉㄨㄥˋ ㄨˋ，ㄐㄧㄡˋ ㄎㄜˇ ㄧˇ ㄅㄚˇ ㄊㄚ ㄓㄨㄚ ㄏㄨㄟˊ ㄐㄧㄚ ㄉㄤˋ ㄨㄢˊ ㄐㄩˋ。", answer: false },
+        { type: "trueFalse", q: "每種動物都有適合自己的生活環境。", z: "ㄇㄟˇ ㄓㄨㄥˇ ㄉㄨㄥˋ ㄨˋ ㄉㄡ ㄧㄡˇ ㄕˋ ㄏㄜˊ ㄗˋ ㄐㄧˇ ㄉㄜ˙ ㄕㄥ ㄏㄨㄛˊ ㄏㄨㄢˊ ㄐㄧㄥˋ。", answer: true },
+        { type: "trueFalse", q: "餵動物吃東西前，不必先知道牠適合吃什麼。", z: "ㄨㄟˋ ㄉㄨㄥˋ ㄨˋ ㄔ ㄉㄨㄥ ㄒㄧ ㄑㄧㄢˊ，ㄅㄨˋ ㄅㄧˋ ㄒㄧㄢ ㄓ ㄉㄠˋ ㄊㄚ ㄕˋ ㄏㄜˊ ㄔ ㄕㄣˊ ㄇㄜ˙。", answer: false }
+      ]
+    },
+    {
+      title: "第二單元：和風做朋友",
+      questions: [
+        { type: "choice", q: "哪一種現象可以讓我們知道風正在吹？", z: "ㄋㄚˇ ㄧˋ ㄓㄨㄥˇ ㄒㄧㄢˋ ㄒㄧㄤˋ ㄎㄜˇ ㄧˇ ㄖㄤˋ ㄨㄛˇ ㄇㄣ˙ ㄓ ㄉㄠˋ ㄈㄥ ㄓㄥˋ ㄗㄞˋ ㄔㄨㄟ？", options: [["樹葉搖動", "ㄕㄨˋ ㄧㄝˋ ㄧㄠˊ ㄉㄨㄥˋ"], ["石頭變軟", "ㄕˊ ㄊㄡ˙ ㄅㄧㄢˋ ㄖㄨㄢˇ"], ["地上長出房子", "ㄉㄧˋ ㄕㄤˋ ㄓㄤˇ ㄔㄨ ㄈㄤˊ ㄗ˙"], ["水變成石頭", "ㄕㄨㄟˇ ㄅㄧㄢˋ ㄔㄥˊ ㄕˊ ㄊㄡ˙"]], answer: 0 },
+        { type: "choice", q: "想知道風從哪個方向吹來，可以使用什麼？", z: "ㄒㄧㄤˇ ㄓ ㄉㄠˋ ㄈㄥ ㄘㄨㄥˊ ㄋㄚˇ ㄍㄜ˙ ㄈㄤ ㄒㄧㄤˋ ㄔㄨㄟ ㄌㄞˊ，ㄎㄜˇ ㄧˇ ㄕˇ ㄩㄥˋ ㄕㄣˊ ㄇㄜ˙？", options: [["風向標", "ㄈㄥ ㄒㄧㄤˋ ㄅㄧㄠ"], ["溫度計", "ㄨㄣ ㄉㄨˋ ㄐㄧˋ"], ["尺", "ㄔˇ"], ["放大鏡", "ㄈㄤˋ ㄉㄚˋ ㄐㄧㄥˋ"]], answer: 0 },
+        { type: "choice", q: "哪一種活動適合在有風的日子進行？", z: "ㄋㄚˇ ㄧˋ ㄓㄨㄥˇ ㄏㄨㄛˊ ㄉㄨㄥˋ ㄕˋ ㄏㄜˊ ㄗㄞˋ ㄧㄡˇ ㄈㄥ ㄉㄜ˙ ㄖˋ ㄗ˙ ㄐㄧㄣˋ ㄒㄧㄥˊ？", options: [["在安全空地放風箏", "ㄗㄞˋ ㄢ ㄑㄩㄢˊ ㄎㄨㄥ ㄉㄧˋ ㄈㄤˋ ㄈㄥ ㄓㄥ"], ["站在大樹下避雷雨", "ㄓㄢˋ ㄗㄞˋ ㄉㄚˋ ㄕㄨˋ ㄒㄧㄚˋ ㄅㄧˋ ㄌㄟˊ ㄩˇ"], ["靠近電線放風箏", "ㄎㄠˋ ㄐㄧㄣˋ ㄉㄧㄢˋ ㄒㄧㄢˋ ㄈㄤˋ ㄈㄥ ㄓㄥ"], ["在馬路中央追球", "ㄗㄞˋ ㄇㄚˇ ㄌㄨˋ ㄓㄨㄥ ㄧㄤ ㄓㄨㄟ ㄑㄧㄡˊ"]], answer: 0 },
+        { type: "choice", q: "風車轉得很快，通常表示什麼？", z: "ㄈㄥ ㄔㄜ ㄓㄨㄢˇ ㄉㄜ˙ ㄏㄣˇ ㄎㄨㄞˋ，ㄊㄨㄥ ㄔㄤˊ ㄅㄧㄠˇ ㄕˋ ㄕㄣˊ ㄇㄜ˙？", options: [["風比較強", "ㄈㄥ ㄅㄧˇ ㄐㄧㄠˋ ㄑㄧㄤˊ"], ["完全沒有風", "ㄨㄢˊ ㄑㄩㄢˊ ㄇㄟˊ ㄧㄡˇ ㄈㄥ"], ["天黑了", "ㄊㄧㄢ ㄏㄟ ㄌㄜ˙"], ["地面在移動", "ㄉㄧˋ ㄇㄧㄢˋ ㄗㄞˋ ㄧˊ ㄉㄨㄥˋ"]], answer: 0 },
+        { type: "choice", q: "下列哪一項不是風吹動物品時可能出現的現象？", z: "ㄒㄧㄚˋ ㄌㄧㄝˋ ㄋㄚˇ ㄧˊ ㄒㄧㄤˋ ㄅㄨˋ ㄕˋ ㄈㄥ ㄔㄨㄟ ㄉㄨㄥˋ ㄨˋ ㄆㄧㄣˇ ㄕˊ ㄎㄜˇ ㄋㄥˊ ㄔㄨ ㄒㄧㄢˋ ㄉㄜ˙ ㄒㄧㄢˋ ㄒㄧㄤˋ？", options: [["旗子飄動", "ㄑㄧˊ ㄗ˙ ㄆㄧㄠ ㄉㄨㄥˋ"], ["樹葉搖動", "ㄕㄨˋ ㄧㄝˋ ㄧㄠˊ ㄉㄨㄥˋ"], ["風車轉動", "ㄈㄥ ㄔㄜ ㄓㄨㄢˇ ㄉㄨㄥˋ"], ["石頭自己跳舞", "ㄕˊ ㄊㄡ˙ ㄗˋ ㄐㄧˇ ㄊㄧㄠˋ ㄨˇ"]], answer: 3 },
+        { type: "trueFalse", q: "風看不見，但是可以從物品的變化感覺到風。", z: "ㄈㄥ ㄎㄢˋ ㄅㄨˋ ㄐㄧㄢˋ，ㄉㄢˋ ㄕˋ ㄎㄜˇ ㄧˇ ㄘㄨㄥˊ ㄨˋ ㄆㄧㄣˇ ㄉㄜ˙ ㄅㄧㄢˋ ㄏㄨㄚˋ ㄍㄢˇ ㄐㄩㄝˊ ㄉㄠˋ ㄈㄥ。", answer: true },
+        { type: "trueFalse", q: "風越大，放風箏就一定越安全。", z: "ㄈㄥ ㄩㄝˋ ㄉㄚˋ，ㄈㄤˋ ㄈㄥ ㄓㄥ ㄐㄧㄡˋ ㄧˊ ㄉㄧㄥˋ ㄩㄝˋ ㄢ ㄑㄩㄢˊ。", answer: false },
+        { type: "trueFalse", q: "吹風時，旗子和樹葉可能會飄動。", z: "ㄔㄨㄟ ㄈㄥ ㄕˊ，ㄑㄧˊ ㄗ˙ ㄏㄢˋ ㄕㄨˋ ㄧㄝˋ ㄎㄜˇ ㄋㄥˊ ㄏㄨㄟˋ ㄆㄧㄠ ㄉㄨㄥˋ。", answer: true },
+        { type: "trueFalse", q: "雷雨天在空曠處放風箏是安全的。", z: "ㄌㄟˊ ㄩˇ ㄊㄧㄢ ㄗㄞˋ ㄎㄨㄥ ㄎㄨㄤˋ ㄔㄨˋ ㄈㄤˋ ㄈㄥ ㄓㄥ ㄕˋ ㄢ ㄑㄩㄢˊ ㄉㄜ˙。", answer: false }
+      ]
+    },
+    {
+      title: "第三單元：泡泡真有趣",
+      questions: [
+        { type: "choice", q: "吹泡泡時，哪一種做法比較安全？", z: "ㄔㄨㄟ ㄆㄠˋ ㄆㄠˋ ㄕˊ，ㄋㄚˇ ㄧˋ ㄓㄨㄥˇ ㄗㄨㄛˋ ㄈㄚˇ ㄅㄧˇ ㄐㄧㄠˋ ㄢ ㄑㄩㄢˊ？", options: [["在空曠處慢慢吹", "ㄗㄞˋ ㄎㄨㄥ ㄎㄨㄤˋ ㄔㄨˋ ㄇㄢˋ ㄇㄢˋ ㄔㄨㄟ"], ["對著別人的臉吹", "ㄉㄨㄟˋ ㄓㄜ˙ ㄅㄧㄝˊ ㄖㄣˊ ㄉㄜ˙ ㄌㄧㄢˇ ㄔㄨㄟ"], ["把泡泡水喝掉", "ㄅㄚˇ ㄆㄠˋ ㄆㄠˋ ㄕㄨㄟˇ ㄏㄜ ㄉㄧㄠˋ"], ["邊跑邊吹", "ㄅㄧㄢ ㄆㄠˇ ㄅㄧㄢ ㄔㄨㄟ"]], answer: 0 },
+        { type: "choice", q: "泡泡通常是什麼形狀？", z: "ㄆㄠˋ ㄆㄠˋ ㄊㄨㄥ ㄔㄤˊ ㄕˋ ㄕㄣˊ ㄇㄜ˙ ㄒㄧㄥˊ ㄓㄨㄤˋ？", options: [["圓圓的", "ㄩㄢˊ ㄩㄢˊ ㄉㄜ˙"], ["方方的", "ㄈㄤ ㄈㄤ ㄉㄜ˙"], ["尖尖的", "ㄐㄧㄢ ㄐㄧㄢ ㄉㄜ˙"], ["三角形", "ㄙㄢ ㄐㄧㄠˇ ㄒㄧㄥˊ"]], answer: 0 },
+        { type: "choice", q: "泡泡水不小心灑在地上，應該怎麼做？", z: "ㄆㄠˋ ㄆㄠˋ ㄕㄨㄟˇ ㄅㄨˋ ㄒㄧㄠˇ ㄒㄧㄣ ㄙㄚˇ ㄗㄞˋ ㄉㄧˋ ㄕㄤˋ，ㄧㄥ ㄍㄞ ㄗㄣˇ ㄇㄜ˙ ㄗㄨㄛˋ？", options: [["告訴大人並擦乾地面", "ㄍㄠˋ ㄙㄨˋ ㄉㄚˋ ㄖㄣˊ ㄅㄧㄥˋ ㄘㄚ ㄍㄢ ㄉㄧˋ ㄇㄧㄢˋ"], ["假裝沒看見", "ㄐㄧㄚˇ ㄓㄨㄤ ㄇㄟˊ ㄎㄢˋ ㄐㄧㄢˋ"], ["踩著泡泡水玩", "ㄘㄞˇ ㄓㄜ˙ ㄆㄠˋ ㄆㄠˋ ㄕㄨㄟˇ ㄨㄢˊ"], ["把水留在地上", "ㄅㄚˇ ㄕㄨㄟˇ ㄌㄧㄡˊ ㄗㄞˋ ㄉㄧˋ ㄕㄤˋ"]], answer: 0 },
+        { type: "choice", q: "為什麼要用吸管輕輕吹泡泡？", z: "ㄨㄟˋ ㄕㄣˊ ㄇㄜ˙ ㄧㄠˋ ㄩㄥˋ ㄒㄧ ㄍㄨㄢˇ ㄑㄧㄥ ㄑㄧㄥ ㄔㄨㄟ ㄆㄠˋ ㄆㄠˋ？", options: [["避免把泡泡水吸進嘴裡", "ㄅㄧˋ ㄇㄧㄢˇ ㄅㄚˇ ㄆㄠˋ ㄆㄠˋ ㄕㄨㄟˇ ㄒㄧ ㄐㄧㄣˋ ㄗㄨㄟˇ ㄌㄧˇ"], ["讓泡泡水變成飲料", "ㄖㄤˋ ㄆㄠˋ ㄆㄠˋ ㄕㄨㄟˇ ㄅㄧㄢˋ ㄔㄥˊ ㄧㄣˇ ㄌㄧㄠˋ"], ["讓泡泡消失得更快", "ㄖㄤˋ ㄆㄠˋ ㄆㄠˋ ㄒㄧㄠ ㄕ ㄉㄜ˙ ㄍㄥˋ ㄎㄨㄞˋ"], ["讓吸管更容易折斷", "ㄖㄤˋ ㄒㄧ ㄍㄨㄢˇ ㄍㄥˋ ㄖㄨㄥˊ ㄧˋ ㄓㄜˊ ㄉㄨㄢˋ"]], answer: 0 },
+        { type: "choice", q: "玩泡泡時，下列哪一項不可以做？", z: "ㄨㄢˊ ㄆㄠˋ ㄆㄠˋ ㄕˊ，ㄒㄧㄚˋ ㄌㄧㄝˋ ㄋㄚˇ ㄧˊ ㄒㄧㄤˋ ㄅㄨˋ ㄎㄜˇ ㄧˇ ㄗㄨㄛˋ？", options: [["在空曠處慢慢吹", "ㄗㄞˋ ㄎㄨㄥ ㄎㄨㄤˋ ㄔㄨˋ ㄇㄢˋ ㄇㄢˋ ㄔㄨㄟ"], ["泡泡水碰到眼睛時告訴大人", "ㄆㄠˋ ㄆㄠˋ ㄕㄨㄟˇ ㄆㄥˋ ㄉㄠˋ ㄧㄢˇ ㄐㄧㄥ ㄕˊ ㄍㄠˋ ㄙㄨˋ ㄉㄚˋ ㄖㄣˊ"], ["把泡泡水喝掉", "ㄅㄚˇ ㄆㄠˋ ㄆㄠˋ ㄕㄨㄟˇ ㄏㄜ ㄉㄧㄠˋ"], ["玩完後洗手", "ㄨㄢˊ ㄨㄢˊ ㄏㄡˋ ㄒㄧˇ ㄕㄡˇ"]], answer: 2 },
+        { type: "trueFalse", q: "泡泡水不能喝，也要避免碰到眼睛。", z: "ㄆㄠˋ ㄆㄠˋ ㄕㄨㄟˇ ㄅㄨˋ ㄋㄥˊ ㄏㄜ，ㄧㄝˇ ㄧㄠˋ ㄅㄧˋ ㄇㄧㄢˇ ㄆㄥˋ ㄉㄠˋ ㄧㄢˇ ㄐㄧㄥ。", answer: true },
+        { type: "trueFalse", q: "泡泡水灑在地上會滑，應該趕快清理。", z: "ㄆㄠˋ ㄆㄠˋ ㄕㄨㄟˇ ㄙㄚˇ ㄗㄞˋ ㄉㄧˋ ㄕㄤˋ ㄏㄨㄟˋ ㄏㄨㄚˊ，ㄧㄥ ㄍㄞ ㄍㄢˇ ㄎㄨㄞˋ ㄑㄧㄥ ㄌㄧˇ。", answer: true },
+        { type: "trueFalse", q: "吹泡泡時，可以把吸管借給同學輪流使用。", z: "ㄔㄨㄟ ㄆㄠˋ ㄆㄠˋ ㄕˊ，ㄎㄜˇ ㄧˇ ㄅㄚˇ ㄒㄧ ㄍㄨㄢˇ ㄐㄧㄝˋ ㄍㄟˇ ㄊㄨㄥˊ ㄒㄩㄝˊ ㄌㄨㄣˊ ㄌㄧㄡˊ ㄕˇ ㄩㄥˋ。", answer: false },
+        { type: "trueFalse", q: "不同形狀的吹泡泡工具，吹出的泡泡也可能是圓形。", z: "ㄅㄨˋ ㄊㄨㄥˊ ㄒㄧㄥˊ ㄓㄨㄤˋ ㄉㄜ˙ ㄔㄨㄟ ㄆㄠˋ ㄆㄠˋ ㄍㄨㄥ ㄐㄩˋ，ㄔㄨㄟ ㄔㄨ ㄉㄜ˙ ㄆㄠˋ ㄆㄠˋ ㄧㄝˇ ㄎㄜˇ ㄋㄥˊ ㄕˋ ㄩㄢˊ ㄒㄧㄥˊ。", answer: true }
+      ]
+    },
+    {
+      title: "第四單元：學校附近",
+      questions: [
+        { type: "choice", q: "想認識學校附近的地方，可以怎麼做？", z: "ㄒㄧㄤˇ ㄖㄣˋ ㄕˋ ㄒㄩㄝˊ ㄒㄧㄠˋ ㄈㄨˋ ㄐㄧㄣˋ ㄉㄜ˙ ㄉㄧˋ ㄈㄤ，ㄎㄜˇ ㄧˇ ㄗㄣˇ ㄇㄜ˙ ㄗㄨㄛˋ？", options: [["和老師、同學一起安全觀察", "ㄏㄢˋ ㄌㄠˇ ㄕ、ㄊㄨㄥˊ ㄒㄩㄝˊ ㄧˋ ㄑㄧˇ ㄢ ㄑㄩㄢˊ ㄍㄨㄢ ㄔㄚˊ"], ["自己跑到馬路上", "ㄗˋ ㄐㄧˇ ㄆㄠˇ ㄉㄠˋ ㄇㄚˇ ㄌㄨˋ ㄕㄤˋ"], ["不看路標亂走", "ㄅㄨˋ ㄎㄢˋ ㄌㄨˋ ㄅㄧㄠ ㄌㄨㄢˋ ㄗㄡˇ"], ["擅自進入別人的家", "ㄕㄢˋ ㄗˋ ㄐㄧㄣˋ ㄖㄨˋ ㄅㄧㄝˊ ㄖㄣˊ ㄉㄜ˙ ㄐㄧㄚ"]], answer: 0 },
+        { type: "choice", q: "過馬路時，哪一種做法正確？", z: "ㄍㄨㄛˋ ㄇㄚˇ ㄌㄨˋ ㄕˊ，ㄋㄚˇ ㄧˋ ㄓㄨㄥˇ ㄗㄨㄛˋ ㄈㄚˇ ㄓㄥˋ ㄑㄩㄝˋ？", options: [["走行人穿越道並注意號誌", "ㄗㄡˇ ㄒㄧㄥˊ ㄖㄣˊ ㄔㄨㄢ ㄩㄝˋ ㄉㄠˋ ㄅㄧㄥˋ ㄓㄨˋ ㄧˋ ㄏㄠˋ ㄓˋ"], ["直接從車子中間穿過", "ㄓˊ ㄐㄧㄝ ㄘㄨㄥˊ ㄔㄜ ㄗ˙ ㄓㄨㄥ ㄐㄧㄢ ㄔㄨㄢ ㄍㄨㄛˋ"], ["邊看手機邊走", "ㄅㄧㄢ ㄎㄢˋ ㄕㄡˇ ㄐㄧ ㄅㄧㄢ ㄗㄡˇ"], ["在馬路上追逐", "ㄗㄞˋ ㄇㄚˇ ㄌㄨˋ ㄕㄤˋ ㄓㄨㄟ ㄓㄨˊ"]], answer: 0 },
+        { type: "choice", q: "在附近看到垃圾，怎麼做比較好？", z: "ㄗㄞˋ ㄈㄨˋ ㄐㄧㄣˋ ㄎㄢˋ ㄉㄠˋ ㄌㄜˋ ㄙㄜˋ，ㄗㄣˇ ㄇㄜ˙ ㄗㄨㄛˋ ㄅㄧˇ ㄐㄧㄠˋ ㄏㄠˇ？", options: [["依照分類丟進垃圾桶", "ㄧ ㄓㄠˋ ㄈㄣ ㄌㄟˋ ㄉㄧㄡ ㄐㄧㄣˋ ㄌㄜˋ ㄙㄜˋ ㄊㄨㄥˇ"], ["踢到路中央", "ㄊㄧ ㄉㄠˋ ㄌㄨˋ ㄓㄨㄥ ㄧㄤ"], ["丟進水溝", "ㄉㄧㄡ ㄐㄧㄣˋ ㄕㄨㄟˇ ㄍㄡ"], ["留在地上", "ㄌㄧㄡˊ ㄗㄞˋ ㄉㄧˋ ㄕㄤˋ"]], answer: 0 },
+        { type: "choice", q: "地圖可以幫助我們做什麼？", z: "ㄉㄧˋ ㄊㄨˊ ㄎㄜˇ ㄧˇ ㄅㄤ ㄓㄨˋ ㄨㄛˇ ㄇㄣ˙ ㄗㄨㄛˋ ㄕㄣˊ ㄇㄜ˙？", options: [["找方向和認識地點", "ㄓㄠˇ ㄈㄤ ㄒㄧㄤˋ ㄏㄢˋ ㄖㄣˋ ㄕˋ ㄉㄧˋ ㄉㄧㄢˇ"], ["讓道路消失", "ㄖㄤˋ ㄉㄠˋ ㄌㄨˋ ㄒㄧㄠ ㄕ"], ["讓車子自動停下", "ㄖㄤˋ ㄔㄜ ㄗ˙ ㄗˋ ㄉㄨㄥˋ ㄊㄧㄥˊ ㄒㄧㄚˋ"], ["代替交通號誌", "ㄉㄞˋ ㄊㄧˋ ㄐㄧㄠ ㄊㄨㄥ ㄏㄠˋ ㄓˋ"]], answer: 0 },
+        { type: "choice", q: "在學校附近探索時，哪一項是不適當的行為？", z: "ㄗㄞˋ ㄒㄩㄝˊ ㄒㄧㄠˋ ㄈㄨˋ ㄐㄧㄣˋ ㄊㄢˋ ㄙㄨㄛˇ ㄕˊ，ㄋㄚˇ ㄧˊ ㄒㄧㄤˋ ㄕˋ ㄅㄨˋ ㄕˋ ㄉㄤˋ ㄉㄜ˙ ㄒㄧㄥˊ ㄨㄟˊ？", options: [["走行人穿越道", "ㄗㄡˇ ㄒㄧㄥˊ ㄖㄣˊ ㄔㄨㄢ ㄩㄝˋ ㄉㄠˋ"], ["跟著老師一起行動", "ㄍㄣ ㄓㄜ˙ ㄌㄠˇ ㄕ ㄧˋ ㄑㄧˇ ㄒㄧㄥˊ ㄉㄨㄥˋ"], ["不告訴大人就自己離隊", "ㄅㄨˋ ㄍㄠˋ ㄙㄨˋ ㄉㄚˋ ㄖㄣˊ ㄐㄧㄡˋ ㄗˋ ㄐㄧˇ ㄌㄧˊ ㄉㄨㄟˋ"], ["遵守交通號誌", "ㄗㄨㄣ ㄕㄡˇ ㄐㄧㄠ ㄊㄨㄥ ㄏㄠˋ ㄓˋ"]], answer: 2 },
+        { type: "trueFalse", q: "外出探索時，要遵守約定並跟著老師或家人。", z: "ㄨㄞˋ ㄔㄨ ㄊㄢˋ ㄙㄨㄛˇ ㄕˊ，ㄧㄠˋ ㄗㄨㄣ ㄕㄡˇ ㄩㄝ ㄉㄧㄥˋ ㄅㄧㄥˋ ㄍㄣ ㄓㄜ˙ ㄌㄠˇ ㄕ ㄏㄨㄛˋ ㄐㄧㄚ ㄖㄣˊ。", answer: true },
+        { type: "trueFalse", q: "行人可以不看號誌，想過馬路就過。", z: "ㄒㄧㄥˊ ㄖㄣˊ ㄎㄜˇ ㄧˇ ㄅㄨˋ ㄎㄢˋ ㄏㄠˋ ㄓˋ，ㄒㄧㄤˇ ㄍㄨㄛˋ ㄇㄚˇ ㄌㄨˋ ㄐㄧㄡˋ ㄍㄨㄛˋ。", answer: false },
+        { type: "trueFalse", q: "認識社區環境，也要愛護公共場所。", z: "ㄖㄣˋ ㄕˋ ㄕㄜˋ ㄑㄩ ㄏㄨㄢˊ ㄐㄧㄥˋ，ㄧㄝˇ ㄧㄠˋ ㄞˋ ㄏㄨˋ ㄍㄨㄥ ㄍㄨㄥˋ ㄔㄤˇ ㄙㄨㄛˇ。", answer: true },
+        { type: "trueFalse", q: "看到不認識的人邀請，可以不告訴大人就跟他走。", z: "ㄎㄢˋ ㄉㄠˋ ㄅㄨˋ ㄖㄣˋ ㄕˋ ㄉㄜ˙ ㄖㄣˊ ㄧㄠ ㄑㄧㄥˇ，ㄎㄜˇ ㄧˇ ㄅㄨˋ ㄍㄠˋ ㄙㄨˋ ㄉㄚˋ ㄖㄣˊ ㄐㄧㄡˋ ㄍㄣ ㄊㄚ ㄗㄡˇ。", answer: false }
+      ]
+    }
+  ];
+
+  const setup = document.getElementById("setup");
+  const quiz = document.getElementById("quiz");
+  const result = document.getElementById("result");
+  const unitSelect = document.getElementById("unit-select");
+  const typeSelect = document.getElementById("type-select");
+  const zhuyinToggle = document.getElementById("zhuyin-toggle");
+  let questions = [];
+  let questionIndex = 0;
+  let correctCount = 0;
+  let answered = false;
+
+  units.forEach((unit, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = unit.title;
+    unitSelect.appendChild(option);
+  });
+
+  function startQuiz() {
+    const selectedUnits = unitSelect.value === "all" ? units : [units[Number(unitSelect.value)]];
+    const selectedType = typeSelect.value;
+    questions = selectedUnits.flatMap(unit => unit.questions
+      .filter(question => selectedType === "all" || question.type === selectedType)
+      .map(question => {
+        const preparedQuestion = { ...question, unit: unit.title };
+        if (question.type !== "choice") return preparedQuestion;
+
+        const shuffledOptions = shuffle(question.options.map((option, originalIndex) => ({
+          option,
+          originalIndex
+        })));
+        return {
+          ...preparedQuestion,
+          options: shuffledOptions.map(entry => entry.option),
+          answer: shuffledOptions.findIndex(entry => entry.originalIndex === question.answer)
+        };
+      }));
+    if (questions.length === 0) return;
+    questionIndex = 0;
+    correctCount = 0;
+    setup.hidden = true;
+    result.hidden = true;
+    quiz.hidden = false;
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const item = questions[questionIndex];
+    answered = false;
+    document.getElementById("progress").textContent = `第 ${questionIndex + 1} / ${questions.length} 題`;
+    document.getElementById("score").textContent = `答對 ${correctCount} 題`;
+    document.getElementById("unit-label").textContent = item.unit;
+    renderAnnotatedText(document.getElementById("question"), item.q, item.z);
+    const optionsContainer = document.getElementById("options");
+    optionsContainer.replaceChildren();
+    document.getElementById("feedback").textContent = "";
+    document.getElementById("feedback").className = "feedback";
+    document.getElementById("next-btn").hidden = true;
+
+    const options = item.type === "choice"
+      ? item.options.map(([text, z], index) => ({ text, z, value: index }))
+      : [{ text: "是", z: "ㄕˋ", value: true }, { text: "不是", z: "ㄅㄨˊ ㄕˋ", value: false }];
+    options.forEach(option => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "option";
+      button.dataset.value = String(option.value);
+      renderAnnotatedText(button, option.text, option.z);
+      button.addEventListener("click", () => selectAnswer(button, option.value, item));
+      optionsContainer.appendChild(button);
+    });
+  }
+
+  function renderAnnotatedText(container, text, reading) {
+    container.replaceChildren();
+    const syllables = reading
+      .replace(/[，。！？；：、,.!?;:]/g, " ")
+      .split(/\s+/)
+      .filter(Boolean);
+    let syllableIndex = 0;
+
+    Array.from(text).forEach(character => {
+      if (!/\p{Script=Han}/u.test(character)) {
+        container.appendChild(document.createTextNode(character));
+        return;
+      }
+
+      const annotatedCharacter = document.createElement("span");
+      annotatedCharacter.className = "annotated-char";
+      annotatedCharacter.appendChild(document.createTextNode(character));
+      const pronunciation = document.createElement("span");
+      pronunciation.className = "reading";
+      const syllable = syllables[syllableIndex++] || "";
+      const tone = syllable.match(/[˙ˊˇˋ]$/)?.[0] || "";
+      const phoneticSymbols = tone ? syllable.slice(0, -tone.length) : syllable;
+      const phoneticCore = document.createElement("span");
+      phoneticCore.className = "reading-core";
+      Array.from(phoneticSymbols).forEach(symbol => {
+        const phoneticSymbol = document.createElement("span");
+        phoneticSymbol.className = "phonetic-symbol";
+        phoneticSymbol.textContent = symbol;
+        phoneticCore.appendChild(phoneticSymbol);
+      });
+      pronunciation.appendChild(phoneticCore);
+      if (tone) {
+        const toneMark = document.createElement("span");
+        toneMark.className = `reading-tone${tone === "˙" ? " neutral-tone" : ""}`;
+        toneMark.textContent = tone;
+        pronunciation.appendChild(toneMark);
+      }
+      pronunciation.hidden = !zhuyinToggle.checked;
+      annotatedCharacter.appendChild(pronunciation);
+      container.appendChild(annotatedCharacter);
+    });
+  }
+
+  function selectAnswer(button, value, item) {
+    if (answered) return;
+    answered = true;
+    const isCorrect = value === item.answer;
+    if (isCorrect) correctCount++;
+    document.querySelectorAll(".option").forEach(option => {
+      option.disabled = true;
+      if (option.dataset.value === String(item.answer)) option.classList.add("correct");
+    });
+    if (!isCorrect) button.classList.add("wrong");
+    const feedback = document.getElementById("feedback");
+    feedback.textContent = isCorrect ? "答對了，真棒！" : `再記一次，正確答案是「${item.type === "choice" ? item.options[item.answer][0] : item.answer ? "是" : "不是"}」。`;
+    feedback.classList.add(isCorrect ? "good" : "bad");
+    document.getElementById("score").textContent = `答對 ${correctCount} 題`;
+    const nextButton = document.getElementById("next-btn");
+    nextButton.textContent = questionIndex + 1 === questions.length ? "看練習結果" : "下一題 →";
+    nextButton.hidden = false;
+  }
+
+  function showResult() {
+    quiz.hidden = true;
+    result.hidden = false;
+    document.getElementById("result-score").textContent = `答對 ${correctCount} / ${questions.length} 題`;
+    document.getElementById("result-message").textContent = correctCount === questions.length
+      ? "太厲害了！全部答對！"
+      : "做得很好，看看錯題再練習一次吧！";
+  }
+
+  function returnToSetup() {
+    quiz.hidden = true;
+    result.hidden = true;
+    setup.hidden = false;
+  }
+
+  function shuffle(items) {
+    const shuffled = [...items];
+    for (let index = shuffled.length - 1; index > 0; index--) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+    }
+    return shuffled;
+  }
+
+  document.getElementById("start-btn").addEventListener("click", startQuiz);
+  document.getElementById("next-btn").addEventListener("click", () => {
+    questionIndex++;
+    if (questionIndex < questions.length) renderQuestion();
+    else showResult();
+  });
+  document.getElementById("quit-btn").addEventListener("click", returnToSetup);
+  document.getElementById("restart-btn").addEventListener("click", startQuiz);
+  document.getElementById("result-setup-btn").addEventListener("click", returnToSetup);
+  zhuyinToggle.addEventListener("change", () => {
+    document.querySelectorAll(".reading").forEach(pronunciation => {
+      pronunciation.hidden = !zhuyinToggle.checked;
+    });
+  });
+</script>
+</body>
+</html>
