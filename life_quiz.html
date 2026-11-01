@@ -25,15 +25,24 @@
     box-shadow: 0 16px 45px rgba(49, 87, 67, .13);
   }
   .home-link {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    z-index: 1000;
     display: inline-flex;
-    margin-bottom: 16px;
+    align-items: center;
+    gap: 7px;
     padding: 9px 14px;
     border-radius: 999px;
-    background: #edf7e9;
-    color: #286c59;
+    background: #00bcd4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .18);
+    color: white;
+    font-size: .95rem;
     font-weight: 750;
     text-decoration: none;
   }
+  .home-link:hover { background: #0097a7; }
+  .home-link:focus-visible { outline: 3px solid #006064; outline-offset: 3px; }
   h1 { margin: 0; color: #286c59; font-size: clamp(1.7rem, 5vw, 2.4rem); }
   .intro { color: #68776e; line-height: 1.7; }
   .setup, .question-card, .result-card {
@@ -144,7 +153,7 @@
 </head>
 <body>
 <main class="quiz-container">
-  <a class="home-link" href="learning.html">← 返回智慧學習樂園</a>
+  <a class="home-link" href="learning.html">🏠 返回大廳</a>
   <h1>🌱 康軒版二年級上學期生活科</h1>
   <p class="intro">依常見單元主題整理原創練習題，每單元有選擇題和是非題。不同學年度的單元編排可能調整，請以課本為準。可開啟注音輔助讀題。</p>
 
