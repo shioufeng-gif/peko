@@ -7,6 +7,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
   body { font-family: 'Segoe UI', 'Microsoft JhengHei'; background: linear-gradient(135deg, #fff9c4 0%, #e1f5fe 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; padding: 15px; box-sizing: border-box; }
+  .home-nav { position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); z-index: 1000; display: inline-flex; align-items: center; gap: 7px; padding: 10px 15px; border-radius: 999px; background: #00bcd4; box-shadow: 0 4px 12px rgba(0,0,0,.18); color: white; font-size: .95rem; font-weight: 800; text-decoration: none; }
+  .home-nav:hover { background: #0097a7; }
+  .home-nav:focus-visible { outline: 3px solid #006064; outline-offset: 3px; }
   .quiz-container { background: #ffffff; padding: 30px; border-radius: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); max-width: 600px; width: 100%; text-align: center; }
   .setup-section { background: #e8f5e9; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
   .question-box { background-color: #fff9c4; padding: 25px; border-radius: 15px; margin-bottom: 20px; font-size: 2.5rem; font-weight: bold; border: 3px dashed #ffb300; }
@@ -51,6 +54,7 @@
 </style>
 </head>
 <body>
+<a class="home-nav" href="learning.html">🏠 返回大廳</a>
 <div class="quiz-container">
   <h1 id="page-title">🔢 國小數學大測驗 🔢</h1>
   <div id="portal-ui">
@@ -66,7 +70,6 @@
       <button class="btn btn-primary" onclick="initQuiz('medium')" style="width: 80%; background-color: #ff9800; margin-bottom: 10px;">🟡 進階練習 (20題)</button>
       <button class="btn btn-primary" onclick="initQuiz('hard')" style="width: 80%; background-color: #f44336; margin-bottom: 10px;">🔴 挑戰練習 (50題)</button>
     </div>
-    <button class="btn btn-home" onclick="location.href='learning.html'" style="width: 80%;">返回大廳</button>
   </div>
 
   <div id="quiz-ui" style="display:none">
@@ -78,8 +81,7 @@
     <div class="options-grid" id="options-container"></div>
     <div class="feedback" id="feedback-box"></div>
     <div style="display: flex; gap: 10px;">
-      <button class="btn btn-home" onclick="location.href='learning.html'" style="flex: 1;">🏠 首頁</button>
-      <button class="btn btn-primary" id="next-btn" style="visibility:hidden; flex: 2;" onclick="nextQuestion()">下一題 ➔</button>
+      <button class="btn btn-primary" id="next-btn" style="visibility:hidden; flex: 1;" onclick="nextQuestion()">下一題 ➔</button>
     </div>
   </div>
 
@@ -87,7 +89,6 @@
     <h2>測驗完成！</h2>
     <div id="result-summary" style="font-size: 1.2rem; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px;"></div>
     <button class="btn btn-primary" onclick="location.reload()" style="width: 100%;">再測一次</button>
-    <button class="btn btn-home" onclick="location.href='learning.html'" style="width: 100%;">返回大廳</button>
     <div id="stats-container" style="max-height: 250px; overflow-y: auto; margin-top: 20px;"></div>
   </div>
 </div>
