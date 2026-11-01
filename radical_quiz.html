@@ -216,6 +216,25 @@
   .btn-primary { background-color: #ff9800; }
   .btn-secondary { background-color: #9e9e9e; }
   .btn-home { background-color: #00bcd4; }
+  .home-nav {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    z-index: 1000;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 15px;
+    border-radius: 999px;
+    background: #00bcd4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .18);
+    color: white;
+    font-size: .95rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+  .home-nav:hover { background: #0097a7; }
+  .home-nav:focus-visible { outline: 3px solid #006064; outline-offset: 3px; }
 
   /* 學習統計報表樣式 */
   .stats-table {
@@ -350,7 +369,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-
+<a class="home-nav" href="learning.html">🏠 返回大廳</a>
 <div class="quiz-container">
   <h1>🌟 智慧部首大挑戰 🌟</h1>
   
@@ -387,7 +406,6 @@
       </div>
     </div>
     <br>
-    <button class="btn btn-home" onclick="goHome()" style="width: 200px;">🏠 返回大廳</button>
     <p style="font-size: 0.9rem; color: #00796b; margin-top: 35px; background: rgba(255,255,255,0.5); display: inline-block; padding: 5px 15px; border-radius: 20px;">📖 出自康軒版國語教材</p>
   </div>
 
@@ -443,7 +461,6 @@
     <div class="feedback" id="feedback-box"></div>
     
     <div class="nav-buttons">
-      <button class="btn btn-home" onclick="goHome()">🏠 首頁</button>
       <button class="btn btn-secondary" id="prev-btn" onclick="prevQuestion()" style="display:none">⬅️ 上一題</button>
       <button class="btn btn-primary" id="next-btn" style="visibility:hidden" onclick="nextQuestion()">下一題 ➔</button>
     </div>
@@ -451,7 +468,6 @@
 
   <div id="result-ui" style="display:none">
     <div id="result-summary"></div>
-    <button class="btn btn-primary" onclick="goHome()" style="margin-top: 15px; width: 100%;">返回主選單 / 重新測驗</button>
     <div id="stats-container" style="max-height: 350px; overflow-y: auto; margin-top: 20px;"></div>
   </div>
 </div>
@@ -861,12 +877,6 @@
     document.getElementById('result-ui').style.display = 'none';
     document.getElementById('database-ui').style.display = 'none';
     document.getElementById('portal-ui').style.display = 'block';
-  }
-
-  // 返回首頁邏輯 (現在會返回總入口頁面)
-  function goHome() {
-    stopTimer();
-    window.location.href = 'learning.html'; // 回到學習項目入口
   }
 
   function initQuiz() {
